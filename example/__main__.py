@@ -2,8 +2,6 @@ import sys
 
 from . import demo
 
-# TODO: only use __main__.py if your package is a CLI tool
-
 
 def main():
     arg = ' '.join(sys.argv[1:])
