@@ -10,6 +10,8 @@
 
 Class-based definitions of click commands
 
+> WORK IN PROGRESS
+
 ## Install
 
 ```
