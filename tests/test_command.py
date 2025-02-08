@@ -10,4 +10,4 @@ class Test(TestCase):
             def hello():
                 pass
 
-        self.assertRaises(ValueError, not_a_class)
+        self.assertRaisesRegex(ValueError, 'hello is not a class', not_a_class)
