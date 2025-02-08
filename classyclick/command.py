@@ -14,7 +14,7 @@ def command(group=None, **click_kwargs):
     def _wrapper(kls):
         if not hasattr(kls, '__bases__'):
             name = getattr(kls, '__name__', str(kls))
-            raise ValueError(f'{name} is not a class - classy stands for classes!')
+            raise ValueError(f'{name} is not a class - classy stands for classes! Use @click.command instead?')
 
         if 'name' not in click_kwargs:
             # similar to https://github.com/pallets/click/blob/5dd628854c0b61bbdc07f22004c5da8fa8ee9481/src/click/decorators.py#L243C24-L243C60

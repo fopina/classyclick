@@ -11,4 +11,4 @@ class Test(TestCase):
         result = runner.invoke(Hello, args=['--name', 'classyclick'])
 
         self.assertEqual(result.exit_code, 0)
-        self.assertIn('Hello, Alice!', result.output)
+        self.assertIn('Hello, classyclick!', result.output)

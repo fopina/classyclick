@@ -1,14 +1,10 @@
 from unittest import TestCase
 
-from click.testing import CliRunner
-
-from .cli_one import Hello
+from classyclick import utils
 
 
 class Test(TestCase):
-    def test_hello(self):
-        runner = CliRunner()
-        result = runner.invoke(Hello, args=['--name', 'classyclick'])
-
-        self.assertEqual(result.exit_code, 0)
-        self.assertIn('Hello, Alice!', result.output)
+    def test_camel_kebab(self):
+        self.assertEqual(utils.camel_kebab('CamelCase'), 'camel-case')
+        self.assertEqual(utils.camel_kebab('Case'), 'case')
+        self.assertEqual(utils.camel_kebab('Camel123Case'), 'camel123-case')
