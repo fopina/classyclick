@@ -10,12 +10,42 @@
 
 Class-based definitions of click commands
 
-> WORK IN PROGRESS
-
-## Install
-
 ```
 pip install classyclick
+```
+
+## A Simple Example
+
+```python
+import click
+import classyclick
+
+
+@click.option('--name', prompt='Your name', help='The person to greet.')
+@click.option('--count', default=1, help='Number of greetings.')
+@classyclick.command()
+class Hello:
+    """Simple program that greets NAME for a total of COUNT times."""
+
+    count: int
+    name: str
+
+    def __call__(self):
+        for _ in range(self.count):
+            click.echo(f'Hello, {self.name}!')
+
+
+if __name__ == '__main__':
+    # not really instantiating (old) Hello class but calling the new click-wrapping "Hello" function
+    Hello()
+```
+
+```
+$ python hello.py --count=3
+Your name: classyclick
+Hello, classyclick!
+Hello, classyclick!
+Hello, classyclick!
 ```
 
 ## Usage
