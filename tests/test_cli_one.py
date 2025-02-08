@@ -14,4 +14,5 @@ class Test(TestCase):
         self.assertIn('Hello, classyclick!', result.output)
 
     def test_hello_class(self):
-        Hello()._classy_
+        kls = Hello.callback._classy_
+        kls(name='classyclick')

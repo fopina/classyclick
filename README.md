@@ -61,13 +61,16 @@ import click
 @click.option("--count", default=1, help="Number of greetings.")
 @click.option("--name", prompt="Your name", help="The person to greet.")
 def hello(count, name):
-    """Simple program that greets NAME for a total of COUNT times."""
+    """Simple program that greets reversed NAME for a total of COUNT times."""
     greet(count, name)
 
 
 def greet(count, name):
     for _ in range(count):
-        click.echo(f"Hello, {name}!")
+        click.echo(f"Hello, {reverse(name)}!")
+
+def reverse(name):
+    return name[::-1]
 ```
 
 See the parameters being passed around?  
@@ -92,7 +95,11 @@ class Hello:
     
     def greet(self):
         for _ in range(self.count):
-            click.echo(f"Hello, {self.name}!")
+            click.echo(f"Hello, {self.reversed_name}!")
+    
+    @property
+    def reversed_name(self):
+        return self.name[::-1]
 ```
 
 ## More docs please
@@ -156,6 +163,7 @@ count: str = classyclick.option('-c', default_parameter=False, default=1, help='
 
 ```python
 from click.testing import CliRunner
+# Hello being the example above that reverses name
 # notice that the wrapped `click.command` gets the same casing as the class
 from hello import Hello
 
@@ -163,5 +171,23 @@ def test_hello_world():
   runner = CliRunner()
   result = runner.invoke(Hello, ['--name', 'Peter'])
   assert result.exit_code == 0
-  assert result.output == 'Hello Peter!\n'
+  assert result.output == 'Hello reteP!\n'
+```
+
+Not very common or documented, but, in `click`, you could use the `click.command` `callback` parameter to call the unwrapped function.  
+
+This was not very useful (as you'd have to capture output yourself, etc) but it might be more interesting with classes, as you might want to unit test specific methods in the class.
+
+`Hello.callback` (from the example) will point to an anonymous function that wraps the class - use `Hello.callback._classy_` instead!
+
+This might help reducing required test setup as you don't need to control complex code paths from entrypoint of the CLI command:
+
+```python
+# notice that the wrapped `click.command` gets the same casing as the class
+from hello import Hello
+
+def test_hello_world():
+  # for the example above that reverses the name
+  o = Hello.callback._classy_('hello', 1)
+  assert o.reversed_name == 'olleh'
 ```
