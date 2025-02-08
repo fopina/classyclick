@@ -12,3 +12,6 @@ class Test(TestCase):
 
         self.assertEqual(result.exit_code, 0)
         self.assertIn('Hello, classyclick!', result.output)
+
+    def test_hello_class(self):
+        Hello()._classy_

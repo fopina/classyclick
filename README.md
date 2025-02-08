@@ -95,5 +95,73 @@ class Hello:
             click.echo(f"Hello, {self.name}!")
 ```
 
-## More
+## More docs please
 
+Not much to add to the simple example currently, as this mostly forwards everything to click, but here's something more then!
+
+### classyclick.command
+
+Use it just like [@click.command](https://click.palletsprojects.com/en/stable/api/#click.command) but decorating a **class** instead of a function (*classy*).
+
+The only new keyword argument is `group`. This can be used to attach the command a `click.group`.
+
+Re-using click examples:
+
+```
+@click.group()
+@click.option('--debug/--no-debug', default=False)
+def cli(debug):
+    click.echo(f"Debug mode is {'on' if debug else 'off'}")
+
+@cli.command()  # @cli, not @click!
+def sync():
+    click.echo('Syncing')
+
+@classyclick.command(group=cli)  # classy! with group
+class AnotherSync:
+    ...
+```
+
+Same as `click.command`, you can choose a command `name` or allow it to derive it from class name (camel to kebab, instead of click's snake to kebab).
+
+It will also forward class `__doc__` to click to be used as description if not specified as keyword arg.
+
+### classyclick.option
+
+Instead of the decorator approach, this is more like [Django's models](https://docs.djangoproject.com/en/dev/topics/db/models/) to take advantage of how parameters are enumerated.
+
+As you noticed from the example, there's no need to specify an option parameter name:
+
+```
+count: str = classyclick.option(default=1, help='Number of greetings.')
+```
+
+`classyclick` makes use of the field names to infer a default (`--count` in example).
+
+To add a short version *on top of it*:
+
+```
+count: str = classyclick.option('-c', default=1, help='Number of greetings.')
+```
+
+And to only include the short, you can use the only keyword argument that is not forwarded to `click.option`: `default_parameter`
+
+```
+count: str = classyclick.option('-c', default_parameter=False, default=1, help='Number of greetings.')
+```
+
+### Testing
+
+`classyclick` is just a small wrapper around `click`, testing is the same as in [click's docs](https://click.palletsprojects.com/en/stable/testing/#basic-testing):
+
+```python
+from click.testing import CliRunner
+# notice that the wrapped `click.command` gets the same casing as the class
+from hello import Hello
+
+def test_hello_world():
+  runner = CliRunner()
+  result = runner.invoke(Hello, ['--name', 'Peter'])
+  assert result.exit_code == 0
+  assert result.output == 'Hello Peter!\n'
+```
