@@ -4,7 +4,7 @@ import argparse
 import re
 from pathlib import Path
 
-VERSION_PY = Path(__file__).parent.parent / 'classyclick' / '__init__.py'
+VERSION_PY = Path(__file__).parent.parent / 'classyclick' / '__version__.py'
 VERSION_RE = re.compile(r"__version__ = version = '(.*?)'")
 
 
