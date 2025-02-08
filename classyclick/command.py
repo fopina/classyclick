@@ -5,14 +5,6 @@ from .option import ClassyOption
 
 
 def command(group=None, **click_kwargs):
-    _kls = None
-
-    if callable(group) and hasattr(group, '__bases__'):
-        # if first argument is a class, decorator without parenthesis
-        _kls = group
-        group = None
-        assert not click_kwargs, "Use 'command(**kwargs)(callable)' to provide arguments."
-
     if group is None:
         # delay import until required
         import click
@@ -47,6 +39,4 @@ def command(group=None, **click_kwargs):
 
         return command
 
-    if _kls is not None:
-        return _wrapper(_kls)
     return _wrapper
