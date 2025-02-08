@@ -1,4 +1,4 @@
-# classyclick
+# $ 🎩click✨_, _classyclick_
 
 [![ci](https://github.com/fopina/classyclick/actions/workflows/publish-main.yml/badge.svg)](https://github.com/fopina/classyclick/actions/workflows/publish-main.yml)
 [![test](https://github.com/fopina/classyclick/actions/workflows/test.yml/badge.svg)](https://github.com/fopina/classyclick/actions/workflows/test.yml)
@@ -10,22 +10,40 @@
 
 Class-based definitions of click commands
 
-> WORK IN PROGRESS
-
-## Install
-
 ```
 pip install classyclick
 ```
 
-## Usage
+## A Simple Example
 
 ```python
->>> from example import demo
->>> demo.echo('ehlo')
-'EHLO right back at ya!'
+import click
+import classyclick
+
+
+@click.option('--name', prompt='Your name', help='The person to greet.')
+@click.option('--count', default=1, help='Number of greetings.')
+@classyclick.command()
+class Hello:
+    """Simple program that greets NAME for a total of COUNT times."""
+
+    count: int
+    name: str
+
+    def __call__(self):
+        for _ in range(self.count):
+            click.echo(f'Hello, {self.name}!')
+
+
+if __name__ == '__main__':
+    # not really instantiating (old) Hello class but calling the new click-wrapping "Hello" function
+    Hello()
 ```
 
-## Build
-
-Check out [CONTRIBUTING.md](CONTRIBUTING.md)
+```
+$ python hello.py --count=3
+Your name: classyclick
+Hello, classyclick!
+Hello, classyclick!
+Hello, classyclick!
+```
