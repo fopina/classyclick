@@ -34,7 +34,7 @@ def command(group=None, **click_kwargs):
         # apply options
         for field in fields(kls):
             if isinstance(field.default, ClassyOption):
-                field.default(command)
+                field.default(command, field.name)
 
         return command
 

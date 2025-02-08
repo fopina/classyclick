@@ -21,14 +21,12 @@ import click
 import classyclick
 
 
-@click.option('--name', prompt='Your name', help='The person to greet.')
-@click.option('--count', default=1, help='Number of greetings.')
 @classyclick.command()
 class Hello:
     """Simple program that greets NAME for a total of COUNT times."""
 
-    count: int
-    name: str
+    count: int = classyclick.option(prompt='Your name', help='The person to greet.')
+    name: str = classyclick.option(default=1, help='Number of greetings.')
 
     def __call__(self):
         for _ in range(self.count):
@@ -47,3 +45,54 @@ Hello, classyclick!
 Hello, classyclick!
 Hello, classyclick!
 ```
+
+## Wait... huh?
+
+_This simple example has even more lines than [click's example](https://github.com/pallets/click/blob/main/README.md#a-simple-example)???_
+
+Right, apart from personal aesthetics preferences, there is no reason to choose class-approach in this example.
+
+Reason why I started to use classes for commands is that, as the command function complexity grows, we decompose it into more functions:
+
+```python
+import click
+
+@click.command()
+@click.option("--count", default=1, help="Number of greetings.")
+@click.option("--name", prompt="Your name", help="The person to greet.")
+def hello(count, name):
+    """Simple program that greets NAME for a total of COUNT times."""
+    greet(count, name)
+
+
+def greet(count, name):
+    for _ in range(count):
+        click.echo(f"Hello, {name}!")
+```
+
+See the parameters being passed around?  
+Easy to have multiple parameters required to several different functions.
+
+Refactoring to classyclick:
+
+```python
+import click
+import classyclick
+
+
+@classyclick.command()
+class Hello:
+    """Simple program that greets NAME for a total of COUNT times."""
+
+    count: int = classyclick.option(prompt='Your name', help='The person to greet.')
+    name: str = classyclick.option(default=1, help='Number of greetings.')
+
+    def __call__(self):
+        self.greet()
+    
+    def greet(self):
+        for _ in range(self.count):
+            click.echo(f"Hello, {self.name}!")
+```
+
+## Testing
