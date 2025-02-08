@@ -14,3 +14,5 @@ version_tuple: VERSION_TUPLE
 
 __version__ = version = '0.0.1'
 __version_tuple__ = version_tuple = tuple(map(int, version.split('.')))
+
+from .command import command
