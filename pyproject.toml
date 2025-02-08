@@ -9,7 +9,7 @@ dynamic = ["version"]
 description = "Class-based definitions of click commands"
 readme = "README.md"
 requires-python = ">=3.10"
-dependencies = []
+dependencies = ["click"]
 
 [project.urls]
 Homepage = "https://github.com/fopina/classyclick"
