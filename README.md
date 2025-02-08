@@ -47,15 +47,3 @@ Hello, classyclick!
 Hello, classyclick!
 Hello, classyclick!
 ```
-
-## Usage
-
-```python
->>> from example import demo
->>> demo.echo('ehlo')
-'EHLO right back at ya!'
-```
-
-## Build
-
-Check out [CONTRIBUTING.md](CONTRIBUTING.md)
