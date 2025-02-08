@@ -1,5 +1,7 @@
-import re
-from dataclasses import dataclass
+from dataclasses import dataclass, fields
+
+from . import utils
+from .option import ClassyOption
 
 
 def command(group=None, **click_kwargs):
@@ -12,21 +14,29 @@ def command(group=None, **click_kwargs):
     def _wrapper(kls):
         if not hasattr(kls, '__bases__'):
             name = getattr(kls, '__name__', str(kls))
-            raise ValueError(f'{name} is not a class - classy stands for classes!')
+            raise ValueError(f'{name} is not a class - classy stands for classes! Use @click.command instead?')
 
         if 'name' not in click_kwargs:
             # similar to https://github.com/pallets/click/blob/5dd628854c0b61bbdc07f22004c5da8fa8ee9481/src/click/decorators.py#L243C24-L243C60
-            # but for expected CamelCase naming in classes
-            # TODO: add some tests to this regexp if published ^^
-            click_kwargs['name'] = re.sub(r'([a-z0-9])([A-Z])', r'\1-\2', kls.__name__).lower()
+            # click expect snake_case function names and converts to kebab-case CLI-friendly names
+            # here, we expect CamelCase class names
+            click_kwargs['name'] = utils.camel_kebab(kls.__name__)
 
         def func(**args):
             kls(**args)()
 
         func.__doc__ = kls.__doc__
+        func._classy_ = kls
 
         # at the end so it doesn't affect __doc__ or others
         dataclass(kls)
-        return group.command(**click_kwargs)(func)
+        command = group.command(**click_kwargs)(func)
+
+        # apply options
+        for field in fields(kls):
+            if isinstance(field.default, ClassyOption):
+                field.default(command, field.name)
+
+        return command
 
     return _wrapper

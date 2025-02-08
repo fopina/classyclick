@@ -9,14 +9,12 @@ import click
 import classyclick
 
 
-@click.option('--name', prompt='Your name', help='The person to greet.')
-@click.option('--count', default=1, help='Number of greetings.')
 @classyclick.command()
 class Hello:
     """Simple program that greets NAME for a total of COUNT times."""
 
-    count: int
-    name: str
+    name: int = classyclick.option(prompt='Your name', help='The person to greet.')
+    count: str = classyclick.option('-c', default=1, help='Number of greetings.')
 
     def __call__(self):
         for _ in range(self.count):

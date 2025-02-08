@@ -58,3 +58,6 @@ source = ["classyclick"]
 [tool.coverage.report]
 show_missing = true
 skip_covered = true
+exclude_lines = [
+    "if TYPE_CHECKING:"
+]
