@@ -18,7 +18,7 @@ def option(*param_decls: str, default_parameter=True, **attrs: Any) -> 'ClassyOp
     return ClassyOption(param_decls, default_parameter, attrs)
 
 
-@dataclass
+@dataclass(frozen=True)
 class ClassyOption:
     param_decls: list[str]
     default_parameter: bool
@@ -28,8 +28,9 @@ class ClassyOption:
         # delay click import
         import click
 
+        param_decls = self.param_decls
         if self.default_parameter:
             long_name = f'--{utils.snake_kebab(field_name)}'
             if long_name not in self.param_decls:
-                self.param_decls = (long_name,) + self.param_decls
-        click.option(*self.param_decls, **self.attrs)(command)
+                param_decls = (long_name,) + self.param_decls
+        click.option(*param_decls, **self.attrs)(command)
