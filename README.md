@@ -140,7 +140,7 @@ Instead of the decorator approach, this is more like [Django's models](https://d
 As you noticed from the example, there's no need to specify an option parameter name:
 
 ```
-count: str = classyclick.option(default=1, help='Number of greetings.')
+count: int = classyclick.option(default=1, help='Number of greetings.')
 ```
 
 `classyclick` makes use of the field names to infer a default (`--count` in example).
@@ -148,13 +148,33 @@ count: str = classyclick.option(default=1, help='Number of greetings.')
 To add a short version *on top of it*:
 
 ```
-count: str = classyclick.option('-c', default=1, help='Number of greetings.')
+count: int = classyclick.option('-c', default=1, help='Number of greetings.')
 ```
 
 And to only include the short, you can use the only keyword argument that is not forwarded to `click.option`: `default_parameter`
 
 ```
-count: str = classyclick.option('-c', default_parameter=False, default=1, help='Number of greetings.')
+count: int = classyclick.option('-c', default_parameter=False, default=1, help='Number of greetings.')
+```
+
+`classyclick.option` also infers **type** from type hints, then passed to `click.option`.
+
+```python
+# The resulting click.option will use type=Path
+output: Path = classyclick.option()
+
+# You can still override it and mix things if you want ¯\_(ツ)_/¯
+other_output: Any = classyclick.option(type=str)
+```
+
+### classyclick.argument
+
+Similar to `classyclick.option`, this is mostly wrapping `click.argument` to be used in fields.
+
+Variable name is infered from the field name and type from field.type. Again, type can be overriden (but not variable name).
+
+```python
+
 ```
 
 ### Composition

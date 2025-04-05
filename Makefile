@@ -1,3 +1,5 @@
+all: lint test
+
 lint:
 	ruff format
 	ruff check --fix

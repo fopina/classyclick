@@ -86,7 +86,8 @@ Options:
         @classyclick.command()
         class Sum:
             a: int = classyclick.argument()
-            b: int = classyclick.argument()
+            # bad type hint but the explicit one supersedes, so test still passes
+            b: str = classyclick.argument(type=int)
 
             def __call__(self):
                 print(self.a + self.b)

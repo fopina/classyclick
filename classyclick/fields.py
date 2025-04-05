@@ -23,14 +23,16 @@ def option(*param_decls: str, default_parameter=True, **attrs: Any) -> 'ClassyOp
     return ClassyOption(param_decls, default_parameter, attrs)
 
 
-def argument() -> 'ClassyArgument':
+def argument(*, type=None, **attrs: Any) -> 'ClassyArgument':
     """
     Attaches an argument to the class field.
 
     Same goal as :meth:`click.argument` (see https://click.palletsprojects.com/en/latest/api/#click.Argument) decorator,
     but no parameters are needed: field name is used as name of the argument.
     """
-    return ClassyArgument()
+    if type is not None:
+        attrs['type'] = type
+    return ClassyArgument(attrs)
 
 
 class ClassyField:
@@ -40,11 +42,15 @@ class ClassyField:
 
 @dataclass(frozen=True)
 class ClassyArgument(ClassyField):
+    attrs: dict[Any]
+
     def __call__(self, command: 'Command', field: 'Field'):
         # delay click import
         import click
 
-        click.argument(field.name, type=field.type)(command)
+        if 'type' not in self.attrs:
+            self.attrs['type'] = field.type
+        click.argument(field.name, **self.attrs)(command)
 
 
 @dataclass(frozen=True)
