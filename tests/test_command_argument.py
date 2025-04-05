@@ -19,10 +19,8 @@ class Test(BaseCase):
 
         if self.click_version >= (8, 0):
             self.assertIn("Error: Missing argument 'NAME'", result.output)
-        elif self.click_version >= (7, 0):
-            self.assertIn('Error: Missing argument "NAME"', result.output)
         else:
-            self.assertIn('Error: Missing argument "name"', result.output)
+            self.assertIn('Error: Missing argument "NAME"', result.output)
 
         result = runner.invoke(Hello, ['--help'])
         self.assertEqual(result.exit_code, 0)
