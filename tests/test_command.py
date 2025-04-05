@@ -68,7 +68,7 @@ Options:
         self.assertEqual(result.exit_code, 0)
         self.assertEqual(result.output, 'Hello, Peter\n')
 
-    def test_type_inferrence_option(self):
+    def test_type_inference_option(self):
         @classyclick.command()
         class Sum:
             a: int = classyclick.option()
@@ -82,7 +82,7 @@ Options:
         self.assertEqual(result.exit_code, 0)
         self.assertEqual(result.output, '3\n')
 
-    def test_type_inferrence_argument(self):
+    def test_type_inference_argument(self):
         @classyclick.command()
         class Sum:
             a: int = classyclick.argument()
