@@ -151,7 +151,7 @@ To add a short version *on top of it*:
 count: int = classyclick.option('-c', default=1, help='Number of greetings.')
 ```
 
-And to only include the short, you can use the only keyword argument that is not forwarded to `click.option`: `default_parameter`
+And to only include the short, you can use the only keyword argument that is not forwarded to [@click.option](https://click.palletsprojects.com/en/stable/api/#click.option): `default_parameter`
 
 ```
 count: int = classyclick.option('-c', default_parameter=False, default=1, help='Number of greetings.')
@@ -169,7 +169,7 @@ other_output: Any = classyclick.option(type=str)
 
 ### classyclick.argument
 
-Similar to `classyclick.option`, this is mostly wrapping `click.argument` to be used in fields.
+Similar to `classyclick.option`, this is mostly wrapping [@click.argument](https://click.palletsprojects.com/en/stable/api/#click.argument) so it can be used in fields.
 
 Variable name is infered from the field name and type from field.type. Again, type can be overriden (but not variable name).
 
