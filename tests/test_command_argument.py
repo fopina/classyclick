@@ -12,14 +12,6 @@ class Test(TestCase):
 
         return tuple(map(int, __version__.split('.')))
 
-    def test_error(self):
-        def not_a_class():
-            @classyclick.command()
-            def hello():
-                pass
-
-        self.assertRaisesRegex(ValueError, 'hello is not a class', not_a_class)
-
     def test_argument(self):
         @classyclick.command()
         class Hello:
@@ -55,7 +47,32 @@ Options:
         self.assertEqual(result.exit_code, 0)
         self.assertEqual(result.output, 'Hello, Peter\n')
 
-    def test_type_inference_argument(self):
+    def test_metavar(self):
+        @classyclick.command()
+        class Hello:
+            name: str = classyclick.argument(metavar='YOUR_NAME')
+
+            def __call__(self):
+                print(f'Hello, {self.name}')
+
+        runner = CliRunner()
+        result = runner.invoke(Hello, ['--help'])
+        self.assertEqual(result.exit_code, 0)
+        self.assertEqual(
+            result.output,
+            """\
+Usage: hello [OPTIONS] YOUR_NAME
+
+Options:
+  --help  Show this message and exit.
+""",
+        )
+
+        result = runner.invoke(Hello, ['Peter'])
+        self.assertEqual(result.exit_code, 0)
+        self.assertEqual(result.output, 'Hello, Peter\n')
+
+    def test_type_inference(self):
         @classyclick.command()
         class Sum:
             a: int = classyclick.argument()
@@ -70,7 +87,7 @@ Options:
         self.assertEqual(result.exit_code, 0)
         self.assertEqual(result.output, '3\n')
 
-    def test_field_not_argument(self):
+    def test_type_override(self):
         @classyclick.command()
         class Sum:
             a: int = classyclick.argument()

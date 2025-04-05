@@ -15,10 +15,12 @@ def option(*param_decls: str, default_parameter=True, **attrs: Any) -> 'ClassyOp
 
     Similar to :meth:`click.option` (see https://click.palletsprojects.com/en/latest/api/#click.Option) decorator, except for `default_parameter`.
 
-    `param_decls` and `attrs` will be forwarded unchanged to `click.option`
-    except for adding an extra parameter to `param_decls` when `default_parameter` is true.
-    If the field (this option is attached to) is named `dry_run`, `default_parameter` will automatically add
-    `--dry-run` to its `param_decls`.
+    `param_decls` and `attrs` will be forwarded to `click.option`
+    Changes done to these:
+    * An extra parameter to `param_decls` when `default_parameter` is true, based on kebab-case of the field name
+      * If the field (this option is attached to) is named `dry_run`, `default_parameter` will automatically add `--dry-run` to its `param_decls`
+    * Type based type hint, if none is specified
+    * No "name" is allowed, as that's already infered from field.name - that means the only positional arguments allowed are the ones that start with "-"
     """
     return ClassyOption(param_decls, default_parameter, attrs)
 
@@ -63,11 +65,19 @@ class ClassyOption(ClassyField):
         # delay click import
         import click
 
-        param_decls = self.param_decls
+        for param in self.param_decls:
+            if param[0] != '-':
+                raise TypeError(
+                    f'{command.classy.__module__}.{command.classy.__qualname__} option {field.name}: do not specify a name, it is already added'
+                )
+
+        # bake field.name as option name
+        param_decls = (field.name,) + self.param_decls
+
         if self.default_parameter:
             long_name = f'--{utils.snake_kebab(field.name)}'
             if long_name not in self.param_decls:
-                param_decls = (long_name,) + self.param_decls
+                param_decls = (long_name,) + param_decls
 
         if 'type' not in self.attrs:
             self.attrs['type'] = field.type

@@ -38,3 +38,14 @@ class Test(TestCase):
         result = runner.invoke(Sum, ['--a', '1', '--b', '2'])
         self.assertEqual(result.exit_code, 0)
         self.assertEqual(result.output, '3\n')
+
+    def test_cannot_choose_name(self):
+        def _a():
+            @classyclick.command()
+            class Sum:
+                a: int = classyclick.option('arc')
+
+                def __call__(self):
+                    print(self.a + self.b)
+
+        self.assertRaisesRegex(TypeError, '.Sum option a: do not specify a name, it is already added', _a)
