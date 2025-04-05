@@ -1,17 +1,10 @@
-from unittest import TestCase
-
 from click.testing import CliRunner
 
 import classyclick
+from tests import BaseCase
 
 
-class Test(TestCase):
-    @property
-    def click_version(self):
-        from click import __version__
-
-        return tuple(map(int, __version__.split('.')))
-
+class Test(BaseCase):
     def test_argument(self):
         @classyclick.command()
         class Hello:
