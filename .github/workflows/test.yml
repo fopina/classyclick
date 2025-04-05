@@ -10,11 +10,32 @@ on:
       - dev-*
 
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.12
+
+      - name: Install dependencies
+        run: |
+          pip install pipenv
+          pipenv requirements --dev > reqs.txt
+          pip install -r reqs.txt
+
+      - name: Lint check
+        run: |
+          make lint-check
+
   tests:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ['3.9', '3.10', '3.12']
+        python-version: ['3.9', '3.12']
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -30,13 +51,6 @@ jobs:
           pipenv requirements --dev > reqs.txt
           pip install -r reqs.txt
 
-      - name: Lint check
-        id: lint-check
-        # allow unit tests to run even if this fails
-        continue-on-error: true
-        run: |
-          make lint-check
-
       - name: Run unit tests
         run: |
           make test
@@ -51,9 +65,3 @@ jobs:
         uses: codecov/test-results-action@v1
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-
-      - name: Final check
-        if: ${{ steps.lint-check.outcome == 'failure' }}
-        run: |
-          echo Lint check failed, check its log
-          exit 1
