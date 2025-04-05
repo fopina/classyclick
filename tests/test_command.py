@@ -67,3 +67,17 @@ Options:
         result = runner.invoke(Hello, ['Peter'])
         self.assertEqual(result.exit_code, 0)
         self.assertEqual(result.output, 'Hello, Peter\n')
+
+    def test_type_inferrence(self):
+        @classyclick.command()
+        class Sum:
+            a: int = classyclick.option()
+            b: int = classyclick.option()
+
+            def __call__(self):
+                print(self.a + self.b)
+
+        runner = CliRunner()
+        result = runner.invoke(Sum, ['--a', '1', '--b', '2'])
+        self.assertEqual(result.exit_code, 0)
+        self.assertEqual(result.output, '3\n')
