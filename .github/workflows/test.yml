@@ -36,6 +36,7 @@ jobs:
     strategy:
       matrix:
         python-version: ['3.9', '3.12']
+        click-version: ['==3.0', '>8']
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -50,6 +51,10 @@ jobs:
           pip install pipenv
           pipenv requirements --dev > reqs.txt
           pip install -r reqs.txt
+      
+      - name: Install click ${{ matrix.click-version }}
+        run: |
+          pip install --upgrade "click${{ matrix.click-version }}"
 
       - name: Run unit tests
         run: |
