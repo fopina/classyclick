@@ -62,7 +62,7 @@ class Test(TestCase):
 
         result = runner.invoke(my_command, args=['--help'])
         self.assertEqual(result.exit_code, 0)
-        self.assertRegex(r'Usage: my.command \[OPTIONS\] WTV', result.output)
+        self.assertRegex(result.output, r'Usage: my.command .*? WTV')
 
         result = runner.invoke(my_command, args=[])
         self.assertEqual(result.exit_code, 2)

@@ -61,7 +61,7 @@ class Test(TestCase):
 
         runner = CliRunner()
 
-        result = runner.invoke(Hello, ['--help'])
+        result = runner.invoke(DP, ['--help'])
         self.assertEqual(result.exit_code, 0)
         self.assertRegex(result.output, r'\n  --name TEXT')
         self.assertRegex(result.output, r'\n  --xtra TEXT')
