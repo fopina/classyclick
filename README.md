@@ -174,7 +174,27 @@ Similar to `classyclick.option`, this is mostly wrapping `click.argument` to be 
 Variable name is infered from the field name and type from field.type. Again, type can be overriden (but not variable name).
 
 ```python
+@classyclick.command()
+class Next:
+    """Output the next number."""
 
+    your_number: int = classyclick.argument()
+
+    def __call__(self):
+        click.echo(self.your_number + 1)
+```
+
+```
+$ ./cli_four.py --help
+Usage: cli_four.py [OPTIONS] YOUR_NUMBER
+
+  Output the next number.
+
+Options:
+  --help  Show this message and exit.
+
+$ ./cli_four.py 5     
+6
 ```
 
 ### Composition
