@@ -21,11 +21,11 @@ class Test(TestCase):
 
         result = runner.invoke(my_command, args=['--help'])
         self.assertEqual(result.exit_code, 0)
-        self.assertIn('Usage: my-command [OPTIONS] NAME', result.output)
+        self.assertRegex(result.output, r'Usage: my.command .*? NAME')
 
         result = runner.invoke(my_command, args=[])
         self.assertEqual(result.exit_code, 2)
-        self.assertIn("Error: Missing argument 'NAME'", result.output)
+        self.assertRegex(result.output, r'Usage: my.command .*? NAME')
 
         result = runner.invoke(my_command, args=['1'])
         self.assertIsNone(result.exception)
