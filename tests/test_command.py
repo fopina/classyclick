@@ -68,7 +68,7 @@ Options:
         self.assertEqual(result.exit_code, 0)
         self.assertEqual(result.output, 'Hello, Peter\n')
 
-    def test_type_inferrence(self):
+    def test_type_inferrence_option(self):
         @classyclick.command()
         class Sum:
             a: int = classyclick.option()
@@ -79,5 +79,19 @@ Options:
 
         runner = CliRunner()
         result = runner.invoke(Sum, ['--a', '1', '--b', '2'])
+        self.assertEqual(result.exit_code, 0)
+        self.assertEqual(result.output, '3\n')
+
+    def test_type_inferrence_argument(self):
+        @classyclick.command()
+        class Sum:
+            a: int = classyclick.argument()
+            b: int = classyclick.argument()
+
+            def __call__(self):
+                print(self.a + self.b)
+
+        runner = CliRunner()
+        result = runner.invoke(Sum, ['1', '2'])
         self.assertEqual(result.exit_code, 0)
         self.assertEqual(result.output, '3\n')
