@@ -9,6 +9,7 @@ class Test(TestCase):
     @property
     def click_version(self):
         from click import __version__
+
         return tuple(map(int, __version__.split('.')))
 
     def test_error(self):
