@@ -13,8 +13,8 @@ import classyclick
 class Hello:
     """Simple program that greets NAME for a total of COUNT times."""
 
-    name: str = classyclick.option(prompt='Your name', help='The person to greet.')
-    count: int = classyclick.option('-c', default=1, help='Number of greetings.')
+    name = classyclick.option(prompt='Your name', help='The person to greet.')
+    count: int = classyclick.option('-c', type=int, default=1, help='Number of greetings.')
 
     def __call__(self):
         for _ in range(self.count):

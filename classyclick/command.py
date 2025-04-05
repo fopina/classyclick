@@ -30,7 +30,7 @@ def command(group=None, **click_kwargs):
         func._classy_ = kls
 
         # at the end so it doesn't affect __doc__ or others
-        dataclass(kls)
+        _strictly_typed_dataclass(kls)
         command = group.command(**click_kwargs)(func)
 
         # apply options
@@ -43,3 +43,13 @@ def command(group=None, **click_kwargs):
         return command
 
     return _wrapper
+
+
+def _strictly_typed_dataclass(kls):
+    annotations = getattr(kls, '__annotations__', {})
+    for name, val in kls.__dict__.items():
+        if name.startswith('__'):
+            continue
+        if name not in annotations and isinstance(val, (ClassyArgument, ClassyOption)):
+            raise TypeError(f"{kls.__module__}.{kls.__qualname__} is missing type for option/argument '{name}'")
+    return dataclass(kls)
