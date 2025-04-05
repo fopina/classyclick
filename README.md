@@ -171,7 +171,7 @@ other_output: Any = classyclick.option(type=str)
 
 Similar to `classyclick.option`, this is mostly wrapping [@click.argument](https://click.palletsprojects.com/en/stable/api/#click.argument) so it can be used in fields.
 
-Variable name is infered from the field name and type from field.type. Again, type can be overriden (but not variable name).
+Argument name is inferred from the field name and type from field.type. Again, type can be overriden, however not argument name as it has to match the property. For display purposes, you can use `metavar=`.
 
 ```python
 @classyclick.command()
