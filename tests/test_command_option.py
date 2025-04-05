@@ -52,7 +52,7 @@ class Test(TestCase):
 
     def test_no_default_parameter(self):
         @classyclick.command()
-        class Hello:
+        class DP:
             name: str = classyclick.option()
             extra: str = classyclick.option('--xtra', default_parameter=False)
 
@@ -66,6 +66,6 @@ class Test(TestCase):
         self.assertRegex(result.output, r'\n  --name TEXT')
         self.assertRegex(result.output, r'\n  --xtra TEXT')
 
-        result = runner.invoke(Hello, ['--name', 'world', '--xtra', '!'])
+        result = runner.invoke(DP, ['--name', 'world', '--xtra', '!'])
         self.assertEqual(result.exit_code, 0)
         self.assertEqual(result.output, 'Hello, world!\n')
