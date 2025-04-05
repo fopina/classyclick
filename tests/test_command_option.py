@@ -49,3 +49,23 @@ class Test(TestCase):
                     print(self.a + self.b)
 
         self.assertRaisesRegex(TypeError, '.Sum option a: do not specify a name, it is already added', _a)
+
+    def test_no_default_parameter(self):
+        @classyclick.command()
+        class Hello:
+            name: str = classyclick.option()
+            extra: str = classyclick.option('--xtra', default_parameter=False)
+
+            def __call__(self):
+                print(f'Hello, {self.name}{self.extra}')
+
+        runner = CliRunner()
+
+        result = runner.invoke(Hello, ['--help'])
+        self.assertEqual(result.exit_code, 0)
+        self.assertRegex(result.output, r'\n  --name TEXT')
+        self.assertRegex(result.output, r'\n  --xtra TEXT')
+
+        result = runner.invoke(Hello, ['--name', 'world', '--xtra', '!'])
+        self.assertEqual(result.exit_code, 0)
+        self.assertEqual(result.output, 'Hello, world!\n')
