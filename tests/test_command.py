@@ -96,3 +96,18 @@ Options:
         result = runner.invoke(Sum, ['1', '2'])
         self.assertEqual(result.exit_code, 0)
         self.assertEqual(result.output, '3\n')
+
+    def test_field_not_argument(self):
+        @classyclick.command()
+        class Sum:
+            a: int = classyclick.argument()
+            # bad type hint but the explicit one supersedes, so test still passes
+            b: str = classyclick.argument(type=int)
+
+            def __call__(self):
+                print(self.a + self.b)
+
+        runner = CliRunner()
+        result = runner.invoke(Sum, ['1', '2'])
+        self.assertEqual(result.exit_code, 0)
+        self.assertEqual(result.output, '3\n')
