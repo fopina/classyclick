@@ -1,15 +1,8 @@
-from unittest import TestCase
-
 import classyclick
+from tests import BaseCase
 
 
-class Test(TestCase):
-    @property
-    def click_version(self):
-        from click import __version__
-
-        return tuple(map(int, __version__.split('.')))
-
+class Test(BaseCase):
     def test_error(self):
         def not_a_class():
             @classyclick.command()

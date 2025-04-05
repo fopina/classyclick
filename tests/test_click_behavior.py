@@ -1,10 +1,10 @@
-from unittest import TestCase
-
 import click
 from click.testing import CliRunner
 
+from tests import BaseCase
 
-class Test(TestCase):
+
+class Test(BaseCase):
     """
     These tests are mostly to CONFIRM click behavior rather than to test it
     """
@@ -51,7 +51,10 @@ class Test(TestCase):
                 click.echo(f'Hello, {name}')
 
         # assert "name" positional is required
-        self.assertRaisesRegex(TypeError, 'Argument is marked as exposed, but does not have a name', _a)
+        if self.click_version >= (8, 0):
+            self.assertRaisesRegex(TypeError, 'Argument is marked as exposed, but does not have a name', _a)
+        else:
+            self.assertRaisesRegex(TypeError, 'Could not determine name for argument', _a)
 
         @click.command()
         @click.argument('name', metavar='WTV')
@@ -66,7 +69,7 @@ class Test(TestCase):
 
         result = runner.invoke(my_command, args=[])
         self.assertEqual(result.exit_code, 2)
-        self.assertIn("Error: Missing argument 'WTV'", result.output)
+        self.assertRegex(result.output, """Error: Missing argument ['"]WTV['"]""")
 
         result = runner.invoke(my_command, args=['1'])
         self.assertIsNone(result.exception)

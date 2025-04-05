@@ -1,5 +1,5 @@
 [packages]
-click = "*"
+click = ">=7"
 
 [dev-packages]
 ruff = "*"

@@ -1,9 +1,8 @@
-from unittest import TestCase
-
 from classyclick import utils
+from tests import BaseCase
 
 
-class Test(TestCase):
+class Test(BaseCase):
     def test_camel_kebab(self):
         self.assertEqual(utils.camel_kebab('CamelCase'), 'camel-case')
         self.assertEqual(utils.camel_kebab('Case'), 'case')

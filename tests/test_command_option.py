@@ -1,11 +1,10 @@
-from unittest import TestCase
-
 from click.testing import CliRunner
 
 import classyclick
+from tests import BaseCase
 
 
-class Test(TestCase):
+class Test(BaseCase):
     @property
     def click_version(self):
         from click import __version__
