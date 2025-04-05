@@ -6,6 +6,11 @@ import classyclick
 
 
 class Test(TestCase):
+    @property
+    def click_version(self):
+        from click import __version__
+        return tuple(map(int, __version__.split('.')))
+
     def test_error(self):
         def not_a_class():
             @classyclick.command()
@@ -38,7 +43,13 @@ class Test(TestCase):
         runner = CliRunner()
         result = runner.invoke(Hello)
         self.assertEqual(result.exit_code, 2)
-        self.assertIn("Error: Missing argument 'NAME'", result.output)
+
+        if self.click_version >= (8, 0):
+            self.assertIn("Error: Missing argument 'NAME'", result.output)
+        elif self.click_version >= (7, 0):
+            self.assertIn('Error: Missing argument "NAME"', result.output)
+        else:
+            self.assertIn('Error: Missing argument "name"', result.output)
 
         result = runner.invoke(Hello, ['--help'])
         self.assertEqual(result.exit_code, 0)
