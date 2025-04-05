@@ -1,6 +1,7 @@
 from dataclasses import dataclass, fields
 
 from . import utils
+from .argument import ClassyArgument
 from .option import ClassyOption
 
 
@@ -35,6 +36,8 @@ def command(group=None, **click_kwargs):
         # apply options
         for field in fields(kls):
             if isinstance(field.default, ClassyOption):
+                field.default(command, field.name)
+            elif isinstance(field.default, ClassyArgument):
                 field.default(command, field.name)
 
         return command

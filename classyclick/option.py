@@ -8,11 +8,11 @@ def option(*param_decls: str, default_parameter=True, **attrs: Any) -> 'ClassyOp
     """
     Attaches an option to the class field.
 
-    Similar to `click.option` decorator, except for `default_parameter`.
+    Similar to :meth:`click.option` (see https://click.palletsprojects.com/en/latest/api/#click.Option) decorator, except for `default_parameter`.
 
     `param_decls` and `attrs` will be forwarded unchanged to `click.option`
     except for adding an extra parameter to `param_decls` when `default_parameter` is true.
-    If the field (this option is attached) is name `dry_run`, `default_parameter` will automatically add
+    If the field (this option is attached to) is named `dry_run`, `default_parameter` will automatically add
     `--dry-run` to its `param_decls`.
     """
     return ClassyOption(param_decls, default_parameter, attrs)
