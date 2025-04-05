@@ -27,11 +27,13 @@ def command(group=None, **click_kwargs):
             kls(**args)()
 
         func.__doc__ = kls.__doc__
+        # deprecated: reference moved to `Command.classy` instead to be more accessible (than `Command.callback._classy_`)
         func._classy_ = kls
 
         # at the end so it doesn't affect __doc__ or others
         _strictly_typed_dataclass(kls)
         command = group.command(**click_kwargs)(func)
+        command.classy = kls
 
         # apply options
         for field in fields(kls):
