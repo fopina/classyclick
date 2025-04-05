@@ -87,8 +87,8 @@ import classyclick
 class Hello:
     """Simple program that greets NAME for a total of COUNT times."""
 
-    name: int = classyclick.option(prompt='Your name', help='The person to greet.')
-    count: str = classyclick.option(default=1, help='Number of greetings.')
+    name: str = classyclick.option(prompt='Your name', help='The person to greet.')
+    count: int = classyclick.option(default=1, help='Number of greetings.')
 
     def __call__(self):
         self.greet()
@@ -157,6 +157,43 @@ And to only include the short, you can use the only keyword argument that is not
 count: str = classyclick.option('-c', default_parameter=False, default=1, help='Number of greetings.')
 ```
 
+### Composition
+
+You can compose commands together as the wrapped class is just a `dataclass`.
+
+Only thing to remember is that the original wrapped class is stored in `Command.classy`, as `Command` becomes a function after being decorated.
+
+As example, if we wanted a `Bye` command just like the `Hello` example above, but with a small change, we can subclass `Hello.classy`
+
+```python
+import click
+import classyclick
+
+
+@classyclick.command()
+class Bye(Hello.classy):
+    """Simple program that says bye to NAME for a total of COUNT times."""
+
+    def greet(self):
+        for _ in range(self.count):
+            click.echo(f"Bye, {self.reversed_name}!")
+```
+
+The command is subclassed, inheriting arguments/options (as they are dataclass fields) and any methods:
+
+```
+$ ./bye.py --help
+
+Usage: bye.py [OPTIONS]
+
+  Simple program that says bye to NAME for a total of COUNT times.
+
+Options:
+  --name TEXT          The person to greet.
+  -c, --count INTEGER  Number of greetings.
+  --help               Show this message and exit.
+```
+
 ### Testing
 
 `classyclick` is just a small wrapper around `click`, testing is the same as in [click's docs](https://click.palletsprojects.com/en/stable/testing/#basic-testing):
@@ -174,20 +211,16 @@ def test_hello_world():
   assert result.output == 'Hello reteP!\n'
 ```
 
-Not very common or documented, but, in `click`, you could use the `click.command` `callback` parameter to call the unwrapped function.  
+For unit testing specific methods of a command, you might want to skip `CliRunner` and use the original class instead, available at `Hello.classy` (from the example)
 
-This was not very useful (as you'd have to capture output yourself, etc) but it might be more interesting with classes, as you might want to unit test specific methods in the class.
-
-`Hello.callback` (from the example) will point to an anonymous function that wraps the class - use `Hello.callback._classy_` instead!
-
-This might help reducing required test setup as you don't need to control complex code paths from entrypoint of the CLI command:
+This might help reducing required test setup as you don't need to control complex code paths from entrypoint of the CLI command.
 
 ```python
 # notice that the wrapped `click.command` gets the same casing as the class
 from hello import Hello
 
 def test_hello_world():
-  # for the example above that reverses the name
-  o = Hello.callback._classy_('hello', 1)
-  assert o.reversed_name == 'olleh'
+# for the example above that reverses the name
+o = Hello.classy('hello', 1)
+assert o.reversed_name == 'olleh'
 ```
