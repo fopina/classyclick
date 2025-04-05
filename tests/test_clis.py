@@ -3,7 +3,6 @@ from unittest import TestCase
 from click.testing import CliRunner
 
 from .cli_one import Hello
-from .cli_three import Bye
 
 
 class Test(TestCase):
@@ -28,8 +27,19 @@ class Test(TestCase):
         self.assertRaisesRegex(TypeError, "tests.cli_two.Hello is missing type for option/argument 'name'", _a)
 
     def test_bye(self):
+        from .cli_three import Bye
+
         runner = CliRunner()
         result = runner.invoke(Bye, args=['--name', 'classyclick'])
 
         self.assertEqual(result.exit_code, 0)
         self.assertIn('Bye, classyclick!', result.output)
+
+    def test_next(self):
+        from .cli_four import Next
+
+        runner = CliRunner()
+        result = runner.invoke(Next, args=['3'])
+
+        self.assertEqual(result.exit_code, 0)
+        self.assertEqual(result.output, '4\n')
