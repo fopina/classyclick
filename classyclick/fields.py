@@ -82,4 +82,7 @@ class ClassyOption(ClassyField):
         if 'type' not in self.attrs:
             self.attrs['type'] = field.type
 
+        if self.attrs['type'] is bool and 'is_flag' not in self.attrs:
+            self.attrs['is_flag'] = True
+
         click.option(*param_decls, **self.attrs)(command)
