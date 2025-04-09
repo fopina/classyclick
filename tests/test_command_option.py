@@ -68,3 +68,31 @@ class Test(BaseCase):
         result = runner.invoke(DP, ['--name', 'world', '--xtra', '!'])
         self.assertEqual(result.exit_code, 0)
         self.assertEqual(result.output, 'Hello, world!\n')
+
+    def test_type_bool(self):
+        """test implicit is_flag=True for type bool"""
+
+        @classyclick.command()
+        class DP:
+            greet: bool = classyclick.option()
+            other: bool = classyclick.option(is_flag=False)
+
+            def __call__(self):
+                if self.greet:
+                    print('Hello')
+
+        runner = CliRunner()
+
+        result = runner.invoke(DP, ['--help'])
+        self.assertEqual(result.exit_code, 0)
+        self.assertRegex(result.output, r'\n  --greet\n')
+        # when is_flag=False, even with type=bool, help reflects it
+        self.assertRegex(result.output, r'\n  --other BOOLEAN\n')
+
+        result = runner.invoke(DP, [])
+        self.assertEqual(result.exit_code, 0)
+        self.assertEqual(result.output, '')
+
+        result = runner.invoke(DP, ['--greet'])
+        self.assertEqual(result.exit_code, 0)
+        self.assertEqual(result.output, 'Hello\n')
