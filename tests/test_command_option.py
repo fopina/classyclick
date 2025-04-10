@@ -96,3 +96,24 @@ class Test(BaseCase):
         result = runner.invoke(DP, ['--greet'])
         self.assertEqual(result.exit_code, 0)
         self.assertEqual(result.output, 'Hello\n')
+
+    def test_type_list_multiple(self):
+        """test click type is properly set to X when using field type list[X]"""
+
+        @classyclick.command()
+        class DP:
+            names: list[str] = classyclick.option('--name', default_parameter=False, metavar='NAME', multiple=True)
+
+            def __call__(self):
+                print(f'Hello, {" and ".join(self.names)}')
+
+        runner = CliRunner()
+
+        result = runner.invoke(DP, ['--help'])
+        self.assertEqual(result.exit_code, 0)
+        self.assertRegex(result.output, r'\n  --name NAME\n')
+
+        result = runner.invoke(DP, ['--name', 'john', '--name', 'paul'])
+        self.assertEqual(result.exception, None)
+        self.assertEqual(result.exit_code, 0)
+        self.assertEqual(result.output, 'Hello, john and paul\n')

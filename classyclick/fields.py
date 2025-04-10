@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, get_args, get_origin
 
 if TYPE_CHECKING:
     from dataclasses import Field
@@ -80,7 +80,10 @@ class ClassyOption(ClassyField):
                 param_decls = (long_name,) + param_decls
 
         if 'type' not in self.attrs:
-            self.attrs['type'] = field.type
+            if self.attrs.get('multiple', False) and get_origin(field.type) is list:
+                self.attrs['type'] = get_args(field.type)[0]
+            else:
+                self.attrs['type'] = field.type
 
         if self.attrs['type'] is bool and 'is_flag' not in self.attrs:
             self.attrs['is_flag'] = True
