@@ -390,12 +390,12 @@
         },
         "pyproject-pipenv": {
             "hashes": [
-                "sha256:20d40959b29c30c576c062b0e2f002b2bcf18b4d5918aee6207d867cced6e817",
-                "sha256:9e5eaa788b760e2583d2d33df4318556a4a5b72e4aaf00a65cfddb4a80717b75"
+                "sha256:9f7f48b6f71797741f41a4543f926ee222468d3dc694990469f38da15f5aad42",
+                "sha256:aa0c8ee5b96646e107b21611d1ec085c26fb53418e2a4188a4d57538371430bf"
             ],
             "index": "pypi",
-            "markers": "python_version >= '3.9'",
-            "version": "==1.0.1"
+            "markers": "python_version >= '3.9' and python_version < '4'",
+            "version": "==1.1.1"
         },
         "pytest": {
             "hashes": [

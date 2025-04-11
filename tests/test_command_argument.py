@@ -92,3 +92,32 @@ Options:
         result = runner.invoke(Sum, ['1', '2'])
         self.assertEqual(result.exit_code, 0)
         self.assertEqual(result.output, '3\n')
+
+    def test_type_list_nargs(self):
+        """
+        test click type is properly set to X when using field type list[X]
+         - only nargs, multiple=True is not supported in click.argument
+        """
+
+        @classyclick.command()
+        class DP:
+            names: list[str] = classyclick.argument(nargs=2)
+
+            def __call__(self):
+                print(f'Hello, {" and ".join(self.names)}')
+
+        runner = CliRunner()
+
+        result = runner.invoke(DP, ['--help'])
+        self.assertEqual(result.exit_code, 0)
+        self.assertRegex(result.output, r'\[OPTIONS\] NAMES...\n')
+
+        result = runner.invoke(DP, ['john', 'paul'])
+        self.assertEqual(
+            (
+                result.exception,
+                result.exit_code,
+                result.output,
+            ),
+            (None, 0, 'Hello, john and paul\n'),
+        )

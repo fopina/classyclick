@@ -111,9 +111,35 @@ class Test(BaseCase):
 
         result = runner.invoke(DP, ['--help'])
         self.assertEqual(result.exit_code, 0)
-        self.assertRegex(result.output, r'\n  --name NAME\n')
+        self.assertRegex(result.output, '\n  --name NAME\n')
 
         result = runner.invoke(DP, ['--name', 'john', '--name', 'paul'])
         self.assertEqual(result.exception, None)
         self.assertEqual(result.exit_code, 0)
         self.assertEqual(result.output, 'Hello, john and paul\n')
+
+    def test_type_list_nargs(self):
+        """test click type is properly set to X when using field type list[X]"""
+
+        @classyclick.command()
+        class DP:
+            names: list[str] = classyclick.option('--name', metavar='NAME', default_parameter=False, nargs=2)
+
+            def __call__(self):
+                print(f'Hello, {" and ".join(self.names)}')
+
+        runner = CliRunner()
+
+        result = runner.invoke(DP, ['--help'])
+        self.assertEqual(result.exit_code, 0)
+        self.assertRegex(result.output, '\n  --name NAME\n')
+
+        result = runner.invoke(DP, ['--name', 'john', 'paul'])
+        self.assertEqual(
+            (
+                result.exception,
+                result.exit_code,
+                result.output,
+            ),
+            (None, 0, 'Hello, john and paul\n'),
+        )
