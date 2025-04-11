@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, Any, get_args, get_origin
 if TYPE_CHECKING:
     from dataclasses import Field
 
+    import click
     from click import Command
 
 from . import utils
@@ -22,7 +23,7 @@ def option(*param_decls: str, default_parameter=True, **attrs: Any) -> 'ClassyOp
     * Type based type hint, if none is specified
     * No "name" is allowed, as that's already infered from field.name - that means the only positional arguments allowed are the ones that start with "-"
     """
-    return ClassyOption(param_decls, default_parameter, attrs)
+    return ClassyOption(param_decls=param_decls, default_parameter=default_parameter, attrs=attrs)
 
 
 def argument(*, type=None, **attrs: Any) -> 'ClassyArgument':
@@ -34,37 +35,45 @@ def argument(*, type=None, **attrs: Any) -> 'ClassyArgument':
     """
     if type is not None:
         attrs['type'] = type
-    return ClassyArgument(attrs)
+    return ClassyArgument(attrs=attrs)
 
 
+@dataclass(frozen=True)
 class ClassyField:
+    attrs: dict[Any]
+
+    def infer_type(self, field: 'Field'):
+        if 'type' not in self.attrs:
+            if (self.attrs.get('multiple', False) or self.attrs.get('nargs', 1) > 1) and get_origin(field.type) is list:
+                self.attrs['type'] = get_args(field.type)[0]
+            else:
+                self.attrs['type'] = field.type
+
+    @property
+    def click(self) -> 'click':
+        # delay click import
+        import click
+
+        return click
+
     def __call__(self, command: 'Command', field: 'Field'):
         """To be implemented in subclasses"""
 
 
 @dataclass(frozen=True)
 class ClassyArgument(ClassyField):
-    attrs: dict[Any]
-
     def __call__(self, command: 'Command', field: 'Field'):
-        # delay click import
-        import click
+        self.infer_type(field)
 
-        if 'type' not in self.attrs:
-            self.attrs['type'] = field.type
-        click.argument(field.name, **self.attrs)(command)
+        self.click.argument(field.name, **self.attrs)(command)
 
 
 @dataclass(frozen=True)
 class ClassyOption(ClassyField):
     param_decls: list[str]
     default_parameter: bool
-    attrs: dict[Any]
 
     def __call__(self, command: 'Command', field: 'Field'):
-        # delay click import
-        import click
-
         for param in self.param_decls:
             if param[0] != '-':
                 raise TypeError(
@@ -79,13 +88,9 @@ class ClassyOption(ClassyField):
             if long_name not in self.param_decls:
                 param_decls = (long_name,) + param_decls
 
-        if 'type' not in self.attrs:
-            if self.attrs.get('multiple', False) and get_origin(field.type) is list:
-                self.attrs['type'] = get_args(field.type)[0]
-            else:
-                self.attrs['type'] = field.type
+        self.infer_type(field)
 
         if self.attrs['type'] is bool and 'is_flag' not in self.attrs:
             self.attrs['is_flag'] = True
 
-        click.option(*param_decls, **self.attrs)(command)
+        self.click.option(*param_decls, **self.attrs)(command)
