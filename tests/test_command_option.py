@@ -74,7 +74,7 @@ class Test(BaseCase):
 
         @classyclick.command()
         class DP:
-            greet: bool = classyclick.option()
+            greet: bool = classyclick.option(is_flag=True)
             other: bool = classyclick.option(is_flag=False)
 
             def __call__(self):
