@@ -41,11 +41,6 @@ def command(group=None, **click_kwargs):
         command = group.command(**click_kwargs)(func)
         command.classy = kls
 
-        # apply options
-        for field in fields(kls):
-            if isinstance(field.default, ClassyField):
-                field.default(command, field)
-
         return command
 
     return _wrapper

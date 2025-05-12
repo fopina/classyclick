@@ -24,7 +24,7 @@ class Test(TestCase):
             # no-op until "ruff format" gets pragma support (like # fmt: off)
             Hello
 
-        self.assertRaisesRegex(TypeError, "tests.cli_two.Hello is missing type for option/argument 'name'", _a)
+        self.assertRaisesRegex(TypeError, "tests.cli_two.Hello is missing type for classy field 'name'", _a)
 
     def test_bye(self):
         from .cli_three import Bye
