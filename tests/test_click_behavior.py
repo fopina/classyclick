@@ -95,7 +95,6 @@ class Test(BaseCase):
         @click.pass_context
         def cli(ctx, repo_home, debug):
             ctx.obj = Repo(repo_home, debug)
-            ctx.meta['repo'] = 'whatever'
 
         @cli.command()
         @click.argument('src')
@@ -103,6 +102,23 @@ class Test(BaseCase):
         @click.pass_obj
         def clone(repo, src, dest):
             click.echo(f'Clone from {src} to {dest} at {repo.home}')
+
+        runner = CliRunner()
+
+        result = runner.invoke(cli, args=['clone', '1'])
+        self.assertIsNone(result.exception)
+        self.assertEqual(result.exit_code, 0)
+        self.assertRegex(result.output, 'Clone from 1 to None at .*?/\.repo\n')
+
+    def test_context_meta(self):
+        if self.click_version < (8, 0):
+            self.skipTest('pass_meta_key requires click 8.0')
+
+        @click.group()
+        @click.option('--repo-home', envvar='REPO_HOME', default='.repo')
+        @click.pass_context
+        def cli(ctx, repo_home):
+            ctx.meta['repo'] = repo_home
 
         @cli.command()
         @click.argument('src')
@@ -120,15 +136,10 @@ class Test(BaseCase):
 
         runner = CliRunner()
 
-        result = runner.invoke(cli, args=['clone', '1'])
-        self.assertIsNone(result.exception)
-        self.assertEqual(result.exit_code, 0)
-        self.assertRegex(result.output, 'Clone from 1 to None at .*?/\.repo\n')
-
         result = runner.invoke(cli, args=['clone-key', '1'])
         self.assertIsNone(result.exception)
         self.assertEqual(result.exit_code, 0)
-        self.assertEqual(result.output, 'Clone from 1 to None at whatever\n')
+        self.assertEqual(result.output, 'Clone from 1 to None at .repo\n')
 
         result = runner.invoke(cli, args=['clone-inv-key', '1'])
         self.assertEqual(result.exception.args, KeyError('invkey').args)

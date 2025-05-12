@@ -54,6 +54,9 @@ class Test(BaseCase):
         self.assertRegex(result.output, r'Clone from 1 to 2 at .*?/\.repo\n')
 
     def test_context_meta(self):
+        if self.click_version < (8, 0):
+            self.skipTest('pass_meta_key requires click 8.0')
+
         @click.group()
         @click.option('--repo-home', envvar='REPO_HOME', default='.repo')
         @click.option('--debug/--no-debug', default=False, envvar='REPO_DEBUG')
