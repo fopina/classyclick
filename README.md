@@ -208,6 +208,54 @@ $ ./cli_four.py 5
 6
 ```
 
+### classyclick.context
+
+Like [@click.pass_context](https://click.palletsprojects.com/en/stable/api/#click.pass_context), this exposes `click.Context` in a command property.
+
+```python
+@classyclick.command()
+class Next:
+    """Output the next number."""
+
+    your_number: int = classyclick.argument()
+    the_context: Any = classyclick.context()
+
+    def __call__(self):
+        click.echo(self.your_number + self.the_context.obj.step_number)
+```
+
+### classyclick.context_obj
+
+Like [@click.pass_obj](https://click.palletsprojects.com/en/stable/api/#click.pass_obj), this assigns `click.Context.obj` to a command property, when you only want the user data rather than the whole context.
+
+```python
+@classyclick.command()
+class Next:
+    """Output the next number."""
+
+    your_number: int = classyclick.argument()
+    the_context: Any = classyclick.context_obj()
+
+    def __call__(self):
+        click.echo(self.your_number + self.the_context.step_number)
+```
+
+### classyclick.context_meta
+
+Like [@click.pass_meta_key](https://click.palletsprojects.com/en/stable/api/#click.decorators.pass_meta_key), this assigns `click.Context.meta[KEY]` to a command property, without handling the whole context.
+
+```python
+@classyclick.command()
+class Next:
+    """Output the next number."""
+
+    your_number: int = classyclick.argument()
+    step_number: int = classyclick.context_meta("step_number")
+
+    def __call__(self):
+        click.echo(self.your_number + self.step_number)
+```
+
 ### Composition
 
 You can compose commands together as the wrapped class is just a `dataclass`.

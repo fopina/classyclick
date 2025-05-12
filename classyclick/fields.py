@@ -52,7 +52,7 @@ def context_obj() -> 'ClassyContextObj':
     return ClassyContextObj(attrs=None)
 
 
-def context_meta(key: str, **attrs: Any) -> 'ClassyContextObj':
+def context_meta(key: str, **attrs: Any) -> 'ClassyContextMeta':
     """
     ...
     """
