@@ -22,8 +22,13 @@ def command(group=None, **click_kwargs):
             # here, we expect CamelCase class names
             click_kwargs['name'] = utils.camel_kebab(kls.__name__)
 
-        def func(**args):
-            kls(**args)()
+        def func(*args, **kwargs):
+            if args:
+                args = list(args)
+                ctx = getattr(func, '__classy_context__', [])
+                for field_name in ctx:
+                    kwargs[field_name] = args.pop()
+            kls(*args, **kwargs)()
 
         func.__doc__ = kls.__doc__
         # deprecated: reference moved to `Command.classy` instead to be more accessible (than `Command.callback._classy_`)
@@ -34,9 +39,10 @@ def command(group=None, **click_kwargs):
         _strictly_typed_dataclass(kls)
 
         # apply options
-        for field in fields(kls):
+        # apply in reverse order to match click's behavior - it DOES MATTER when multiple click.argument
+        for field in fields(kls)[::-1]:
             if isinstance(field.default, ClassyField):
-                field.default(func, field)
+                func = field.default(func, field)
 
         command = group.command(**click_kwargs)(func)
         command.classy = kls
@@ -52,5 +58,5 @@ def _strictly_typed_dataclass(kls):
         if name.startswith('__'):
             continue
         if name not in annotations and isinstance(val, ClassyField):
-            raise TypeError(f"{kls.__module__}.{kls.__qualname__} is missing type for option/argument '{name}'")
+            raise TypeError(f"{kls.__module__}.{kls.__qualname__} is missing type for classy field '{name}'")
     return dataclass(kls)
