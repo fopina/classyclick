@@ -38,25 +38,25 @@ def argument(*, type=None, **attrs: Any) -> 'ClassyArgument':
     return ClassyArgument(attrs=attrs)
 
 
-def context() -> 'ClassyContextObj':
+def context() -> 'ClassyContext':
     """
     ...
     """
-    return ClassyContextObj(None)
+    return ClassyContext(attrs=None)
 
 
 def context_obj() -> 'ClassyContextObj':
     """
     ...
     """
-    return ClassyContextObj(None)
+    return ClassyContextObj(attrs=None)
 
 
-def context_meta() -> 'ClassyContextObj':
+def context_meta(key: str, **attrs: Any) -> 'ClassyContextObj':
     """
     ...
     """
-    return ClassyContextObj(None)
+    return ClassyContextMeta(key=key, attrs=attrs)
 
 
 @dataclass(frozen=True)
@@ -79,6 +79,7 @@ class ClassyField:
 
     def __call__(self, command: 'Command', field: 'Field'):
         """To be implemented in subclasses"""
+        return command
 
 
 @dataclass(frozen=True)
@@ -86,7 +87,7 @@ class ClassyArgument(ClassyField):
     def __call__(self, command: 'Command', field: 'Field'):
         self.infer_type(field)
 
-        self.click.argument(field.name, **self.attrs)(command)
+        return self.click.argument(field.name, **self.attrs)(command)
 
 
 @dataclass(frozen=True)
@@ -117,16 +118,32 @@ class ClassyOption(ClassyField):
             del self.attrs['type']
             self.attrs['is_flag'] = True
 
-        self.click.option(*param_decls, **self.attrs)(command)
+        return self.click.option(*param_decls, **self.attrs)(command)
 
 
 @dataclass(frozen=True)
 class ClassyContext(ClassyField):
+    def store_field_name(self, command: 'Command', field: 'Field'):
+        if not hasattr(command, '__classy_context__'):
+            command.__classy_context__ = []  # type: ignore
+        command.__classy_context__.insert(0, field.name)
+
     def __call__(self, command: 'Command', field: 'Field'):
-        pass
+        self.store_field_name(command, field)
+        return self.click.pass_context(command)
 
 
 @dataclass(frozen=True)
-class ClassyContextObj(ClassyField):
+class ClassyContextObj(ClassyContext):
     def __call__(self, command: 'Command', field: 'Field'):
-        pass
+        self.store_field_name(command, field)
+        return self.click.pass_obj(command)
+
+
+@dataclass(frozen=True)
+class ClassyContextMeta(ClassyContext):
+    key: str
+
+    def __call__(self, command: 'Command', field: 'Field'):
+        self.store_field_name(command, field)
+        return self.click.decorators.pass_meta_key(self.key, **self.attrs)(command)
