@@ -54,7 +54,8 @@ class Test(BaseCase):
                 click.echo(f'Hello, {name}')
 
         # assert "name" positional is required
-        if self.click_version >= (8, 0):
+        # error changed in https://github.com/pallets/click/pull/2453
+        if self.click_version >= (8, 1, 8):
             self.assertRaisesRegex(TypeError, 'Argument is marked as exposed, but does not have a name', _a)
         else:
             self.assertRaisesRegex(TypeError, 'Could not determine name for argument', _a)
