@@ -108,7 +108,7 @@ class Test(BaseCase):
         result = runner.invoke(cli, args=['clone', '1'])
         self.assertIsNone(result.exception)
         self.assertEqual(result.exit_code, 0)
-        self.assertRegex(result.output, 'Clone from 1 to None at .*?/\.repo\n')
+        self.assertRegex(result.output, r'Clone from 1 to None at .*?/\.repo\n')
 
     def test_context_meta(self):
         if self.click_version < (8, 0):
