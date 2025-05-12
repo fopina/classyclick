@@ -91,6 +91,9 @@ class ClassyOption(ClassyField):
         self.infer_type(field)
 
         if self.attrs['type'] is bool and 'is_flag' not in self.attrs:
+            # drop explicit type because of bug in click 8.2.0
+            # https://github.com/pallets/click/issues/2894 / https://github.com/pallets/click/pull/2829
+            del self.attrs['type']
             self.attrs['is_flag'] = True
 
         self.click.option(*param_decls, **self.attrs)(command)
