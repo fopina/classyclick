@@ -1,7 +1,7 @@
 from dataclasses import dataclass, fields
 
 from . import utils
-from .fields import ClassyArgument, ClassyOption
+from .fields import ClassyField
 
 
 def command(group=None, **click_kwargs):
@@ -28,18 +28,18 @@ def command(group=None, **click_kwargs):
         func.__doc__ = kls.__doc__
         # deprecated: reference moved to `Command.classy` instead to be more accessible (than `Command.callback._classy_`)
         func._classy_ = kls
+        func.classy = kls
 
         # at the end so it doesn't affect __doc__ or others
         _strictly_typed_dataclass(kls)
-        command = group.command(**click_kwargs)(func)
-        command.classy = kls
 
         # apply options
         for field in fields(kls):
-            if isinstance(field.default, ClassyOption):
-                field.default(command, field)
-            elif isinstance(field.default, ClassyArgument):
-                field.default(command, field)
+            if isinstance(field.default, ClassyField):
+                field.default(func, field)
+
+        command = group.command(**click_kwargs)(func)
+        command.classy = kls
 
         return command
 
@@ -51,6 +51,6 @@ def _strictly_typed_dataclass(kls):
     for name, val in kls.__dict__.items():
         if name.startswith('__'):
             continue
-        if name not in annotations and isinstance(val, (ClassyArgument, ClassyOption)):
+        if name not in annotations and isinstance(val, ClassyField):
             raise TypeError(f"{kls.__module__}.{kls.__qualname__} is missing type for option/argument '{name}'")
     return dataclass(kls)
