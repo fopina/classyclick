@@ -38,6 +38,27 @@ def argument(*, type=None, **attrs: Any) -> 'ClassyArgument':
     return ClassyArgument(attrs=attrs)
 
 
+def context() -> 'ClassyContextObj':
+    """
+    ...
+    """
+    return ClassyContextObj(None)
+
+
+def context_obj() -> 'ClassyContextObj':
+    """
+    ...
+    """
+    return ClassyContextObj(None)
+
+
+def context_meta() -> 'ClassyContextObj':
+    """
+    ...
+    """
+    return ClassyContextObj(None)
+
+
 @dataclass(frozen=True)
 class ClassyField:
     attrs: dict[Any]
@@ -97,3 +118,15 @@ class ClassyOption(ClassyField):
             self.attrs['is_flag'] = True
 
         self.click.option(*param_decls, **self.attrs)(command)
+
+
+@dataclass(frozen=True)
+class ClassyContext(ClassyField):
+    def __call__(self, command: 'Command', field: 'Field'):
+        pass
+
+
+@dataclass(frozen=True)
+class ClassyContextObj(ClassyField):
+    def __call__(self, command: 'Command', field: 'Field'):
+        pass

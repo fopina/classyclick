@@ -41,6 +41,11 @@ def command(group=None, **click_kwargs):
         command = group.command(**click_kwargs)(func)
         command.classy = kls
 
+        # apply options
+        for field in fields(kls):
+            if isinstance(field.default, ClassyField):
+                field.default(command, field)
+
         return command
 
     return _wrapper
@@ -52,5 +57,5 @@ def _strictly_typed_dataclass(kls):
         if name.startswith('__'):
             continue
         if name not in annotations and isinstance(val, ClassyField):
-            raise TypeError(f"{kls.__module__}.{kls.__qualname__} is missing type for option/argument '{name}'")
+            raise TypeError(f"{kls.__module__}.{kls.__qualname__} is missing type for classy field '{name}'")
     return dataclass(kls)
