@@ -11,7 +11,7 @@ from tests.cli_one import Hello
 
 
 @classyclick.command()
-class Bye(Hello.classy):
+class Bye(Hello):
     """Simple program that says bye to NAME for a total of COUNT times."""
 
     def __call__(self):

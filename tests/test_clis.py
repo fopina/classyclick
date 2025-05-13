@@ -8,13 +8,13 @@ from .cli_one import Hello
 class Test(TestCase):
     def test_hello(self):
         runner = CliRunner()
-        result = runner.invoke(Hello, args=['--name', 'classyclick'])
+        result = runner.invoke(Hello.click, args=['--name', 'classyclick'])
 
         self.assertEqual(result.exit_code, 0)
         self.assertIn('Hello, classyclick!', result.output)
 
     def test_hello_class(self):
-        kls = Hello.classy
+        kls = Hello
         kls(name='classyclick')
 
     def test_hello_no_types(self):
@@ -30,7 +30,7 @@ class Test(TestCase):
         from .cli_three import Bye
 
         runner = CliRunner()
-        result = runner.invoke(Bye, args=['--name', 'classyclick'])
+        result = runner.invoke(Bye.click, args=['--name', 'classyclick'])
 
         self.assertEqual(result.exit_code, 0)
         self.assertIn('Bye, classyclick!', result.output)
@@ -39,7 +39,7 @@ class Test(TestCase):
         from .cli_four import Next
 
         runner = CliRunner()
-        result = runner.invoke(Next, args=['3'])
+        result = runner.invoke(Next.click, args=['3'])
 
         self.assertEqual(result.exit_code, 0)
         self.assertEqual(result.output, '4\n')

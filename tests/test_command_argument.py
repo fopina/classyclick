@@ -14,13 +14,13 @@ class Test(BaseCase):
                 print(f'Hello, {self.name}')
 
         runner = CliRunner()
-        result = runner.invoke(Hello)
+        result = runner.invoke(Hello.click)
         self.assertEqual(result.exit_code, 2)
 
         # click changed from " ' in 8.0.0
         self.assertRegex(result.output, """Error: Missing argument ['"]NAME['"]""")
 
-        result = runner.invoke(Hello, ['--help'])
+        result = runner.invoke(Hello.click, ['--help'])
         self.assertEqual(result.exit_code, 0)
         self.assertEqual(
             result.output,
@@ -32,7 +32,7 @@ Options:
 """,
         )
 
-        result = runner.invoke(Hello, ['Peter'])
+        result = runner.invoke(Hello.click, ['Peter'])
         self.assertEqual(result.exit_code, 0)
         self.assertEqual(result.output, 'Hello, Peter\n')
 
@@ -45,7 +45,7 @@ Options:
                 print(f'Hello, {self.name}')
 
         runner = CliRunner()
-        result = runner.invoke(Hello, ['--help'])
+        result = runner.invoke(Hello.click, ['--help'])
         self.assertEqual(result.exit_code, 0)
         self.assertEqual(
             result.output,
@@ -57,7 +57,8 @@ Options:
 """,
         )
 
-        result = runner.invoke(Hello, ['Peter'])
+        result = runner.invoke(Hello.click, ['Peter'])
+        self.assertEqual(result.exception, None)
         self.assertEqual(result.exit_code, 0)
         self.assertEqual(result.output, 'Hello, Peter\n')
 
@@ -72,7 +73,7 @@ Options:
                 print(self.a + self.b)
 
         runner = CliRunner()
-        result = runner.invoke(Sum, ['1', '2'])
+        result = runner.invoke(Sum.click, ['1', '2'])
         self.assertEqual(result.exit_code, 0)
         self.assertEqual(result.output, '3\n')
 
@@ -87,7 +88,7 @@ Options:
                 print(self.a + self.b)
 
         runner = CliRunner()
-        result = runner.invoke(Sum, ['1', '2'])
+        result = runner.invoke(Sum.click, ['1', '2'])
         self.assertEqual(result.exit_code, 0)
         self.assertEqual(result.output, '3\n')
 
@@ -106,11 +107,11 @@ Options:
 
         runner = CliRunner()
 
-        result = runner.invoke(DP, ['--help'])
+        result = runner.invoke(DP.click, ['--help'])
         self.assertEqual(result.exit_code, 0)
         self.assertRegex(result.output, r'\[OPTIONS\] NAMES...\n')
 
-        result = runner.invoke(DP, ['john', 'paul'])
+        result = runner.invoke(DP.click, ['john', 'paul'])
         self.assertEqual(
             (
                 result.exception,

@@ -34,8 +34,7 @@ class Hello:
 
 
 if __name__ == '__main__':
-    # not really instantiating (old) Hello class but calling the new click-wrapping "Hello" function
-    Hello()
+    Hello.click()
 ```
 
 ```
@@ -260,9 +259,7 @@ class Next:
 
 You can compose commands together as the wrapped class is just a `dataclass`.
 
-Only thing to remember is that the original wrapped class is stored in `Command.classy`, as `Command` becomes a function after being decorated.
-
-As example, if we wanted a `Bye` command just like the `Hello` example above, but with a small change, we can subclass `Hello.classy`
+As example, if we wanted a `Bye` command just like the `Hello` example above, but with a small change, we can subclass `Hello`
 
 ```python
 import click
@@ -270,7 +267,7 @@ import classyclick
 
 
 @classyclick.command()
-class Bye(Hello.classy):
+class Bye(Hello):
     """Simple program that says bye to NAME for a total of COUNT times."""
 
     def greet(self):
@@ -297,29 +294,29 @@ Options:
 
 `classyclick` is just a small wrapper around `click`, testing is the same as in [click's docs](https://click.palletsprojects.com/en/stable/testing/#basic-testing):
 
+Simply use `Command.click` with `CliRunner` for the same `click.testing` experience
+
 ```python
 from click.testing import CliRunner
 # Hello being the example above that reverses name
-# notice that the wrapped `click.command` gets the same casing as the class
 from hello import Hello
 
 def test_hello_world():
   runner = CliRunner()
-  result = runner.invoke(Hello, ['--name', 'Peter'])
+  result = runner.invoke(Hello.click, ['--name', 'Peter'])
   assert result.exit_code == 0
   assert result.output == 'Hello reteP!\n'
 ```
 
-For unit testing specific methods of a command, you might want to skip `CliRunner` and use the original class instead, available at `Hello.classy` (from the example)
+But you can also unit test specific methods of a command, skipping `CliRunner`.
 
 This might help reducing required test setup as you don't need to control complex code paths from entrypoint of the CLI command.
 
 ```python
-# notice that the wrapped `click.command` gets the same casing as the class
 from hello import Hello
 
 def test_hello_world():
 # for the example above that reverses the name
-o = Hello.classy('hello', 1)
+o = Hello('hello', 1)
 assert o.reversed_name == 'olleh'
 ```
