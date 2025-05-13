@@ -8,6 +8,8 @@ T = TypeVar('T')
 
 
 class Clickable(Protocol):
+    """to merge with wrapped classed for type hints"""
+
     def click() -> Callable: ...
 
 
