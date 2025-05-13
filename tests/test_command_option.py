@@ -20,7 +20,7 @@ class Test(BaseCase):
                 print(f'Hello, {self.name}')
 
         runner = CliRunner()
-        result = runner.invoke(Hello, ['--name', 'Peter'])
+        result = runner.invoke(Hello.click, ['--name', 'Peter'])
         self.assertEqual(result.exit_code, 0)
         self.assertEqual(result.output, 'Hello, Peter\n')
 
@@ -34,7 +34,7 @@ class Test(BaseCase):
                 print(self.a + self.b)
 
         runner = CliRunner()
-        result = runner.invoke(Sum, ['--a', '1', '--b', '2'])
+        result = runner.invoke(Sum.click, ['--a', '1', '--b', '2'])
         self.assertEqual(result.exit_code, 0)
         self.assertEqual(result.output, '3\n')
 
@@ -60,12 +60,12 @@ class Test(BaseCase):
 
         runner = CliRunner()
 
-        result = runner.invoke(DP, ['--help'])
+        result = runner.invoke(DP.click, ['--help'])
         self.assertEqual(result.exit_code, 0)
         self.assertRegex(result.output, r'\n  --name TEXT')
         self.assertRegex(result.output, r'\n  --xtra TEXT')
 
-        result = runner.invoke(DP, ['--name', 'world', '--xtra', '!'])
+        result = runner.invoke(DP.click, ['--name', 'world', '--xtra', '!'])
         self.assertEqual(result.exit_code, 0)
         self.assertEqual(result.output, 'Hello, world!\n')
 
@@ -83,17 +83,17 @@ class Test(BaseCase):
 
         runner = CliRunner()
 
-        result = runner.invoke(DP, ['--help'])
+        result = runner.invoke(DP.click, ['--help'])
         self.assertEqual(result.exit_code, 0)
         self.assertRegex(result.output, r'\n  --greet\n')
         # when is_flag=False, even with type=bool, help reflects it
         self.assertRegex(result.output, r'\n  --other BOOLEAN\n')
 
-        result = runner.invoke(DP, [])
+        result = runner.invoke(DP.click, [])
         self.assertEqual(result.exit_code, 0)
         self.assertEqual(result.output, '')
 
-        result = runner.invoke(DP, ['--greet'])
+        result = runner.invoke(DP.click, ['--greet'])
         self.assertEqual(result.exit_code, 0)
         self.assertEqual(result.output, 'Hello\n')
 
@@ -109,11 +109,11 @@ class Test(BaseCase):
 
         runner = CliRunner()
 
-        result = runner.invoke(DP, ['--help'])
+        result = runner.invoke(DP.click, ['--help'])
         self.assertEqual(result.exit_code, 0)
         self.assertRegex(result.output, '\n  --name NAME\n')
 
-        result = runner.invoke(DP, ['--name', 'john', '--name', 'paul'])
+        result = runner.invoke(DP.click, ['--name', 'john', '--name', 'paul'])
         self.assertEqual(result.exception, None)
         self.assertEqual(result.exit_code, 0)
         self.assertEqual(result.output, 'Hello, john and paul\n')
@@ -130,11 +130,11 @@ class Test(BaseCase):
 
         runner = CliRunner()
 
-        result = runner.invoke(DP, ['--help'])
+        result = runner.invoke(DP.click, ['--help'])
         self.assertEqual(result.exit_code, 0)
         self.assertRegex(result.output, '\n  --name NAME\n')
 
-        result = runner.invoke(DP, ['--name', 'john', 'paul'])
+        result = runner.invoke(DP.click, ['--name', 'john', 'paul'])
         self.assertEqual(
             (
                 result.exception,

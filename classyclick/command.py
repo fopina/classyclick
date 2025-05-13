@@ -1,7 +1,14 @@
 from dataclasses import dataclass, fields
+from typing import Callable, Protocol, TypeVar, Union
 
 from . import utils
 from .fields import ClassyField
+
+T = TypeVar('T')
+
+
+class Clickable(Protocol):
+    def click() -> Callable: ...
 
 
 def command(group=None, **click_kwargs):
@@ -11,7 +18,7 @@ def command(group=None, **click_kwargs):
 
         group = click
 
-    def _wrapper(kls):
+    def _wrapper(kls: T) -> Union[T, Clickable]:
         if not hasattr(kls, '__bases__'):
             name = getattr(kls, '__name__', str(kls))
             raise ValueError(f'{name} is not a class - classy stands for classes! Use @click.command instead?')
@@ -31,9 +38,6 @@ def command(group=None, **click_kwargs):
             kls(*args, **kwargs)()
 
         func.__doc__ = kls.__doc__
-        # deprecated: reference moved to `Command.classy` instead to be more accessible (than `Command.callback._classy_`)
-        func._classy_ = kls
-        func.classy = kls
 
         # at the end so it doesn't affect __doc__ or others
         _strictly_typed_dataclass(kls)
@@ -45,9 +49,10 @@ def command(group=None, **click_kwargs):
                 func = field.default(func, field)
 
         command = group.command(**click_kwargs)(func)
-        command.classy = kls
 
-        return command
+        kls.click = command
+
+        return kls
 
     return _wrapper
 
