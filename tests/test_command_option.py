@@ -47,7 +47,7 @@ class Test(BaseCase):
                 def __call__(self):
                     print(self.a + self.b)
 
-        self.assertRaisesRegex(TypeError, '.Sum option a: do not specify a name, it is already added', _a)
+        self.assertRaisesRegex(TypeError, 'sum option a: do not specify a name, it is already added', _a)
 
     def test_no_default_parameter(self):
         @classyclick.command()

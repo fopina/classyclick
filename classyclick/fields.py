@@ -98,9 +98,7 @@ class ClassyOption(ClassyField):
     def __call__(self, command: 'Command', field: 'Field'):
         for param in self.param_decls:
             if param[0] != '-':
-                raise TypeError(
-                    f'{command.classy.__module__}.{command.classy.__qualname__} option {field.name}: do not specify a name, it is already added'
-                )
+                raise TypeError(f'{command.__name__} option {field.name}: do not specify a name, it is already added')
 
         # bake field.name as option name
         param_decls = (field.name,) + self.param_decls

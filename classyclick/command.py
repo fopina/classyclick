@@ -38,6 +38,7 @@ def command(group=None, **click_kwargs):
             kls(*args, **kwargs)()
 
         func.__doc__ = kls.__doc__
+        func.__name__ = click_kwargs['name']
 
         # at the end so it doesn't affect __doc__ or others
         _strictly_typed_dataclass(kls)
