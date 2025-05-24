@@ -22,5 +22,4 @@ class Hello:
 
 
 if __name__ == '__main__':
-    # not really instantiating (old) Hello class but calling the new click-wrapping "Hello" function
-    Hello()
+    Hello.click()

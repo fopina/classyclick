@@ -10,10 +10,14 @@ T = TypeVar('T')
 class Clickable(Protocol):
     """to merge with wrapped classed for type hints"""
 
-    def click() -> Callable: ...
+    @staticmethod
+    def click():
+        """
+        invoke this command with click
+        """
 
 
-def command(group=None, **click_kwargs):
+def command(group=None, **click_kwargs) -> Callable[[T], Union[T, Clickable]]:
     if group is None:
         # delay import until required
         import click
