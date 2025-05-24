@@ -20,5 +20,4 @@ class Bye(Hello):
 
 
 if __name__ == '__main__':
-    # not really instantiating (old) Bye class but calling the new click-wrapping "Bye" function
-    Bye()
+    Bye.click()

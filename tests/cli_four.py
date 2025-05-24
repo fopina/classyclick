@@ -20,4 +20,4 @@ class Next:
 
 
 if __name__ == '__main__':
-    Next()
+    Next.click()
