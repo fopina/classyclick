@@ -52,15 +52,15 @@ def context_obj() -> 'ContextObj':
     return ContextObj(attrs=None)
 
 
-def context_meta(key: str, **attrs: Any) -> 'ClassyContextMeta':
+def context_meta(key: str, **attrs: Any) -> 'ContextMeta':
     """
     ...
     """
-    return ClassyContextMeta(key=key, attrs=attrs)
+    return ContextMeta(key=key, attrs=attrs)
 
 
 @dataclass(frozen=True)
-class ClassyField:
+class _Field:
     attrs: dict[Any]
 
     def infer_type(self, field: 'Field'):
@@ -83,7 +83,7 @@ class ClassyField:
 
 
 @dataclass(frozen=True)
-class ClassyArgument(ClassyField):
+class Argument(_Field):
     def __call__(self, command: 'Command', field: 'Field'):
         self.infer_type(field)
 
@@ -91,7 +91,7 @@ class ClassyArgument(ClassyField):
 
 
 @dataclass(frozen=True)
-class ClassyOption(ClassyField):
+class Option(_Field):
     param_decls: list[str]
     default_parameter: bool
 
@@ -120,7 +120,7 @@ class ClassyOption(ClassyField):
 
 
 @dataclass(frozen=True)
-class ClassyContext(ClassyField):
+class Context(_Field):
     def store_field_name(self, command: 'Command', field: 'Field'):
         if not hasattr(command, '__classy_context__'):
             command.__classy_context__ = []  # type: ignore
@@ -132,14 +132,14 @@ class ClassyContext(ClassyField):
 
 
 @dataclass(frozen=True)
-class ClassyContextObj(ClassyContext):
+class ContextObj(Context):
     def __call__(self, command: 'Command', field: 'Field'):
         self.store_field_name(command, field)
         return self.click.pass_obj(command)
 
 
 @dataclass(frozen=True)
-class ClassyContextMeta(ClassyContext):
+class ContextMeta(Context):
     key: str
 
     def __call__(self, command: 'Command', field: 'Field'):
