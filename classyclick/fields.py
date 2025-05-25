@@ -10,7 +10,7 @@ if TYPE_CHECKING:
 from . import utils
 
 
-def option(*param_decls: str, default_parameter=True, **attrs: Any) -> 'ClassyOption':
+def option(*param_decls: str, default_parameter=True, **attrs: Any) -> 'Option':
     """
     Attaches an option to the class field.
 
@@ -23,10 +23,10 @@ def option(*param_decls: str, default_parameter=True, **attrs: Any) -> 'ClassyOp
     * Type based type hint, if none is specified
     * No "name" is allowed, as that's already infered from field.name - that means the only positional arguments allowed are the ones that start with "-"
     """
-    return ClassyOption(param_decls=param_decls, default_parameter=default_parameter, attrs=attrs)
+    return Option(param_decls=param_decls, default_parameter=default_parameter, attrs=attrs)
 
 
-def argument(*, type=None, **attrs: Any) -> 'ClassyArgument':
+def argument(*, type=None, **attrs: Any) -> 'Argument':
     """
     Attaches an argument to the class field.
 
@@ -35,21 +35,21 @@ def argument(*, type=None, **attrs: Any) -> 'ClassyArgument':
     """
     if type is not None:
         attrs['type'] = type
-    return ClassyArgument(attrs=attrs)
+    return Argument(attrs=attrs)
 
 
-def context() -> 'ClassyContext':
+def context() -> 'Context':
     """
     ...
     """
-    return ClassyContext(attrs=None)
+    return Context(attrs=None)
 
 
-def context_obj() -> 'ClassyContextObj':
+def context_obj() -> 'ContextObj':
     """
     ...
     """
-    return ClassyContextObj(attrs=None)
+    return ContextObj(attrs=None)
 
 
 def context_meta(key: str, **attrs: Any) -> 'ClassyContextMeta':
