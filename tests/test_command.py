@@ -10,3 +10,22 @@ class Test(BaseCase):
                 pass
 
         self.assertRaisesRegex(ValueError, 'hello is not a class', not_a_class)
+
+    def test_command_default_name(self):
+        @classyclick.command()
+        class Hello: ...
+
+        self.assertEqual(Hello.click.name, 'hello')
+
+        @classyclick.command()
+        class HelloThere: ...
+
+        self.assertEqual(HelloThere.click.name, 'hello-there')
+
+        @classyclick.command()
+        class HelloThereCommand: ...
+
+        if self.click_version < (8, 2):
+            self.assertEqual(HelloThereCommand.click.name, 'hello-there-command')
+        else:
+            self.assertEqual(HelloThereCommand.click.name, 'hello-there')
