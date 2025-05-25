@@ -25,4 +25,7 @@ class Test(BaseCase):
         @classyclick.command()
         class HelloThereCommand: ...
 
-        # self.assertEqual(HelloThereCommand.click.name, 'hello-there')
+        if self.click_version < (8, 2):
+            self.assertEqual(HelloThereCommand.click.name, 'hello-there-command')
+        else:
+            self.assertEqual(HelloThereCommand.click.name, 'hello-there')

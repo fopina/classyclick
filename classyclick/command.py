@@ -28,12 +28,6 @@ def command(group=None, **click_kwargs) -> Callable[[T], Union[T, Clickable]]:
             name = getattr(kls, '__name__', str(kls))
             raise ValueError(f'{name} is not a class - classy stands for classes! Use @click.command instead?')
 
-        if 'name' not in click_kwargs:
-            # similar to https://github.com/pallets/click/blob/5dd628854c0b61bbdc07f22004c5da8fa8ee9481/src/click/decorators.py#L243C24-L243C60
-            # click expect snake_case function names and converts to kebab-case CLI-friendly names
-            # here, we expect CamelCase class names
-            click_kwargs['name'] = utils.camel_kebab(kls.__name__)
-
         def func(*args, **kwargs):
             if args:
                 args = list(args)
@@ -43,7 +37,9 @@ def command(group=None, **click_kwargs) -> Callable[[T], Union[T, Clickable]]:
             kls(*args, **kwargs)()
 
         func.__doc__ = kls.__doc__
-        func.__name__ = click_kwargs['name']
+        # To re-use click logic (https://github.com/pallets/click/blob/fd183b2ced1cb5857784fe7fb22f4982f671f098/src/click/decorators.py#L242)
+        # convert camel to snake as function name and let click itself convert to kebab (and trim whatever it wants) if custom 'name' is not specified
+        func.__name__ = utils.camel_snake(kls.__name__)
 
         # at the end so it doesn't affect __doc__ or others
         _strictly_typed_dataclass(kls)
