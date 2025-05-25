@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, get_args, get_origin
 
+from typing_extensions import deprecated
+
 if TYPE_CHECKING:
     from dataclasses import Field
 
@@ -10,6 +12,7 @@ if TYPE_CHECKING:
 from . import utils
 
 
+@deprecated('use Option instead')
 def option(*param_decls: str, default_parameter=True, **attrs: Any) -> 'Option':
     """
     Attaches an option to the class field.
@@ -26,6 +29,7 @@ def option(*param_decls: str, default_parameter=True, **attrs: Any) -> 'Option':
     return Option(param_decls=param_decls, default_parameter=default_parameter, attrs=attrs)
 
 
+@deprecated('use Aption instead')
 def argument(*, type=None, **attrs: Any) -> 'Argument':
     """
     Attaches an argument to the class field.
@@ -38,23 +42,29 @@ def argument(*, type=None, **attrs: Any) -> 'Argument':
     return Argument(attrs=attrs)
 
 
+@deprecated('use Context instead')
 def context() -> 'Context':
     """
-    ...
+    Like :meth:`click.pass_context` (see https://click.palletsprojects.com/en/stable/api/#click.pass_context),
+    this exposes `click.Context` in a command property.
     """
     return Context(attrs=None)
 
 
+@deprecated('use ContextObj instead')
 def context_obj() -> 'ContextObj':
     """
-    ...
+    Like :meth:`click.pass_obj` (see https://click.palletsprojects.com/en/stable/api/#click.pass_obj),
+    this assigns `click.Context.obj` to a command property, when you only want the user data rather than the whole context.
     """
     return ContextObj(attrs=None)
 
 
+@deprecated('use ContextMeta instead')
 def context_meta(key: str, **attrs: Any) -> 'ContextMeta':
     """
-    ...
+    Like :meth:`click.pass_meta_key` (see https://click.palletsprojects.com/en/stable/api/#click.decorators.pass_meta_key),
+    this assigns `click.Context.meta[KEY]` to a command property, without handling the whole context.
     """
     return ContextMeta(key=key, attrs=attrs)
 
