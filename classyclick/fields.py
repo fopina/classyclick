@@ -1,4 +1,3 @@
-from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, get_args, get_origin
 
 from typing_extensions import deprecated
@@ -26,10 +25,10 @@ def option(*param_decls: str, default_parameter=True, **attrs: Any) -> 'Option':
     * Type based type hint, if none is specified
     * No "name" is allowed, as that's already infered from field.name - that means the only positional arguments allowed are the ones that start with "-"
     """
-    return Option(param_decls=param_decls, default_parameter=default_parameter, attrs=attrs)
+    return Option(*param_decls, default_parameter=default_parameter, **attrs)
 
 
-@deprecated('use Aption instead')
+@deprecated('use Argument instead')
 def argument(*, type=None, **attrs: Any) -> 'Argument':
     """
     Attaches an argument to the class field.
@@ -37,9 +36,7 @@ def argument(*, type=None, **attrs: Any) -> 'Argument':
     Same goal as :meth:`click.argument` (see https://click.palletsprojects.com/en/latest/api/#click.Argument) decorator,
     but no parameters are needed: field name is used as name of the argument.
     """
-    if type is not None:
-        attrs['type'] = type
-    return Argument(attrs=attrs)
+    return Argument(type=type, **attrs)
 
 
 @deprecated('use Context instead')
@@ -48,7 +45,7 @@ def context() -> 'Context':
     Like :meth:`click.pass_context` (see https://click.palletsprojects.com/en/stable/api/#click.pass_context),
     this exposes `click.Context` in a command property.
     """
-    return Context(attrs=None)
+    return Context()
 
 
 @deprecated('use ContextObj instead')
@@ -57,7 +54,7 @@ def context_obj() -> 'ContextObj':
     Like :meth:`click.pass_obj` (see https://click.palletsprojects.com/en/stable/api/#click.pass_obj),
     this assigns `click.Context.obj` to a command property, when you only want the user data rather than the whole context.
     """
-    return ContextObj(attrs=None)
+    return ContextObj()
 
 
 @deprecated('use ContextMeta instead')
@@ -66,12 +63,14 @@ def context_meta(key: str, **attrs: Any) -> 'ContextMeta':
     Like :meth:`click.pass_meta_key` (see https://click.palletsprojects.com/en/stable/api/#click.decorators.pass_meta_key),
     this assigns `click.Context.meta[KEY]` to a command property, without handling the whole context.
     """
-    return ContextMeta(key=key, attrs=attrs)
+    return ContextMeta(key, **attrs)
 
 
-@dataclass(frozen=True)
 class _Field:
     attrs: dict[Any]
+
+    def __init__(self, **attrs):
+        self.attrs = attrs
 
     def infer_type(self, field: 'Field'):
         if 'type' not in self.attrs:
@@ -87,23 +86,48 @@ class _Field:
 
         return click
 
-    def __call__(self, command: 'Command', field: 'Field'):
+    def __call__(self, command: 'Command', field: 'Field') -> 'Command':
         """To be implemented in subclasses"""
         return command
 
 
-@dataclass(frozen=True)
 class Argument(_Field):
+    """
+    Attaches an argument to the class field.
+
+    Same goal as :meth:`click.argument` (see https://click.palletsprojects.com/en/latest/api/#click.Argument) decorator,
+    but no parameters are needed: field name is used as name of the argument.
+    """
+
+    def __init__(self, *, type=None, **attrs: Any):
+        if type is not None:
+            attrs['type'] = type
+        super().__init__(**attrs)
+
     def __call__(self, command: 'Command', field: 'Field'):
         self.infer_type(field)
 
         return self.click.argument(field.name, **self.attrs)(command)
 
 
-@dataclass(frozen=True)
 class Option(_Field):
-    param_decls: list[str]
-    default_parameter: bool
+    """
+    Attaches an option to the class field.
+
+    Similar to :meth:`click.option` (see https://click.palletsprojects.com/en/latest/api/#click.Option) decorator, except for `default_parameter`.
+
+    `param_decls` and `attrs` will be forwarded to `click.option`
+    Changes done to these:
+    * An extra parameter to `param_decls` when `default_parameter` is true, based on kebab-case of the field name
+      * If the field (this option is attached to) is named `dry_run`, `default_parameter` will automatically add `--dry-run` to its `param_decls`
+    * Type based type hint, if none is specified
+    * No "name" is allowed, as that's already infered from field.name - that means the only positional arguments allowed are the ones that start with "-"
+    """
+
+    def __init__(self, *param_decls: list[str], default_parameter=True, **attrs):
+        super().__init__(**attrs)
+        self.param_decls = param_decls
+        self.default_parameter = default_parameter
 
     def __call__(self, command: 'Command', field: 'Field'):
         for param in self.param_decls:
@@ -129,8 +153,12 @@ class Option(_Field):
         return self.click.option(*param_decls, **self.attrs)(command)
 
 
-@dataclass(frozen=True)
 class Context(_Field):
+    """
+    Like :meth:`click.pass_context` (see https://click.palletsprojects.com/en/stable/api/#click.pass_context),
+    this exposes `click.Context` in a command property.
+    """
+
     def store_field_name(self, command: 'Command', field: 'Field'):
         if not hasattr(command, '__classy_context__'):
             command.__classy_context__ = []  # type: ignore
@@ -141,16 +169,26 @@ class Context(_Field):
         return self.click.pass_context(command)
 
 
-@dataclass(frozen=True)
 class ContextObj(Context):
+    """
+    Like :meth:`click.pass_obj` (see https://click.palletsprojects.com/en/stable/api/#click.pass_obj),
+    this assigns `click.Context.obj` to a command property, when you only want the user data rather than the whole context.
+    """
+
     def __call__(self, command: 'Command', field: 'Field'):
         self.store_field_name(command, field)
         return self.click.pass_obj(command)
 
 
-@dataclass(frozen=True)
 class ContextMeta(Context):
-    key: str
+    """
+    Like :meth:`click.pass_meta_key` (see https://click.palletsprojects.com/en/stable/api/#click.decorators.pass_meta_key),
+    this assigns `click.Context.meta[KEY]` to a command property, without handling the whole context.
+    """
+
+    def __init__(self, key: str, **attrs):
+        super().__init__(**attrs)
+        self.key = key
 
     def __call__(self, command: 'Command', field: 'Field'):
         self.store_field_name(command, field)
