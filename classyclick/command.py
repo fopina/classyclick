@@ -1,5 +1,8 @@
 from dataclasses import dataclass, fields
-from typing import Callable, Protocol, TypeVar, Union
+from typing import TYPE_CHECKING, Callable, Protocol, TypeVar, Union
+
+if TYPE_CHECKING:
+    from click import Command
 
 from . import utils
 from .fields import ClassyField
@@ -10,11 +13,7 @@ T = TypeVar('T')
 class Clickable(Protocol):
     """to merge with wrapped classed for type hints"""
 
-    @staticmethod
-    def click():
-        """
-        invoke this command with click
-        """
+    click: 'Command'
 
 
 def command(group=None, **click_kwargs) -> Callable[[T], Union[T, Clickable]]:

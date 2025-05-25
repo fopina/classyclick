@@ -14,9 +14,6 @@ class Test(BaseCase):
     def test_argument_name(self):
         """check that argument name is required and MUST match the variable"""
 
-        # test command renamed from my_command to hello because of https://github.com/pallets/click/issues/2322 in click 8.2.0
-        # does ClassyCommand need the same logic?
-
         @click.command()
         @click.argument('name')
         def hello(name):
@@ -145,3 +142,22 @@ class Test(BaseCase):
         self.assertEqual(result.exception.args, KeyError('invkey').args)
         self.assertEqual(result.exit_code, 1)
         self.assertEqual(result.output, '')
+
+    def test_naming(self):
+        # "function to command" naming changed in 8.2.0 - https://github.com/pallets/click/issues/2322
+        # as this opens up room for more "stripping" on top of just changing snake to kebab case, write test for it
+
+        @click.command()
+        def hello_there():
+            pass
+
+        self.assertEqual(hello_there.name, 'hello-there')
+
+        @click.command()
+        def hello_command():
+            pass
+
+        if self.click_version < (8, 2):
+            self.assertEqual(hello_command.name, 'hello-command')
+        else:
+            self.assertEqual(hello_command.name, 'hello')
