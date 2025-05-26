@@ -88,7 +88,6 @@ class _Field:
 
     def __call__(self, command: 'Command', field: 'Field') -> 'Command':
         """To be implemented in subclasses"""
-        return command
 
 
 class Argument(_Field):
