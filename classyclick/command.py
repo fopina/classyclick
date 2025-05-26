@@ -14,6 +14,9 @@ class Clickable(Protocol):
     """to merge with wrapped classed for type hints"""
 
     click: 'Command'
+    """
+    Run click command
+    """
 
 
 def command(group=None, **click_kwargs) -> Callable[[T], Union[T, Clickable]]:
