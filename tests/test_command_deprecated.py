@@ -7,6 +7,9 @@ from tests import BaseCase
 
 class Test(BaseCase):
     def test_all(self):
+        if self.click_version < (8, 0):
+            self.skipTest('pass_meta_key requires click 8.0')
+
         @click.group()
         @click.option('--country', default='Somewhere')
         @click.pass_context
