@@ -22,7 +22,7 @@ class Test(TestCase):
             from .cli_two import Hello
 
             # no-op until "ruff format" gets pragma support (like # fmt: off)
-            Hello
+            Hello.click()
 
         self.assertRaisesRegex(TypeError, "tests.cli_two.Hello is missing type for classy field 'name'", _a)
 

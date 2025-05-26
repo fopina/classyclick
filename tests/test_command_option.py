@@ -5,16 +5,10 @@ from tests import BaseCase
 
 
 class Test(BaseCase):
-    @property
-    def click_version(self):
-        from click import __version__
-
-        return tuple(map(int, __version__.split('.')))
-
     def test_option(self):
         @classyclick.command()
         class Hello:
-            name: str = classyclick.option(help='Name')
+            name: str = classyclick.Option(help='Name')
 
             def __call__(self):
                 print(f'Hello, {self.name}')
@@ -27,8 +21,8 @@ class Test(BaseCase):
     def test_type_inference_option(self):
         @classyclick.command()
         class Sum:
-            a: int = classyclick.option()
-            b: int = classyclick.option()
+            a: int = classyclick.Option()
+            b: int = classyclick.Option()
 
             def __call__(self):
                 print(self.a + self.b)
@@ -42,7 +36,7 @@ class Test(BaseCase):
         def _a():
             @classyclick.command()
             class Sum:
-                a: int = classyclick.option('arc')
+                a: int = classyclick.Option('arc')
 
                 def __call__(self):
                     print(self.a + self.b)
@@ -52,8 +46,8 @@ class Test(BaseCase):
     def test_no_default_parameter(self):
         @classyclick.command()
         class DP:
-            name: str = classyclick.option()
-            extra: str = classyclick.option('--xtra', default_parameter=False)
+            name: str = classyclick.Option()
+            extra: str = classyclick.Option('--xtra', default_parameter=False)
 
             def __call__(self):
                 print(f'Hello, {self.name}{self.extra}')
@@ -74,8 +68,8 @@ class Test(BaseCase):
 
         @classyclick.command()
         class DP:
-            greet: bool = classyclick.option()
-            other: bool = classyclick.option(is_flag=False)
+            greet: bool = classyclick.Option()
+            other: bool = classyclick.Option(is_flag=False)
 
             def __call__(self):
                 if self.greet:
@@ -102,7 +96,7 @@ class Test(BaseCase):
 
         @classyclick.command()
         class DP:
-            names: list[str] = classyclick.option('--name', default_parameter=False, metavar='NAME', multiple=True)
+            names: list[str] = classyclick.Option('--name', default_parameter=False, metavar='NAME', multiple=True)
 
             def __call__(self):
                 print(f'Hello, {" and ".join(self.names)}')
@@ -123,7 +117,7 @@ class Test(BaseCase):
 
         @classyclick.command()
         class DP:
-            names: list[str] = classyclick.option('--name', metavar='NAME', default_parameter=False, nargs=2)
+            names: list[str] = classyclick.Option('--name', metavar='NAME', default_parameter=False, nargs=2)
 
             def __call__(self):
                 print(f'Hello, {" and ".join(self.names)}')

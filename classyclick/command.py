@@ -5,7 +5,7 @@ if TYPE_CHECKING:
     from click import Command
 
 from . import utils
-from .fields import ClassyField
+from .fields import _Field
 
 T = TypeVar('T')
 
@@ -47,7 +47,7 @@ def command(group=None, **click_kwargs) -> Callable[[T], Union[T, Clickable]]:
         # apply options
         # apply in reverse order to match click's behavior - it DOES MATTER when multiple click.argument
         for field in fields(kls)[::-1]:
-            if isinstance(field.default, ClassyField):
+            if isinstance(field.default, _Field):
                 func = field.default(func, field)
 
         command = group.command(**click_kwargs)(func)
@@ -64,6 +64,6 @@ def _strictly_typed_dataclass(kls):
     for name, val in kls.__dict__.items():
         if name.startswith('__'):
             continue
-        if name not in annotations and isinstance(val, ClassyField):
+        if name not in annotations and isinstance(val, _Field):
             raise TypeError(f"{kls.__module__}.{kls.__qualname__} is missing type for classy field '{name}'")
     return dataclass(kls)

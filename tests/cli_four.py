@@ -13,7 +13,7 @@ import classyclick
 class Next:
     """Output the next number."""
 
-    your_number: int = classyclick.argument()
+    your_number: int = classyclick.Argument()
 
     def __call__(self):
         click.echo(self.your_number + 1)

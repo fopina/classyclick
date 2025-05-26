@@ -22,7 +22,7 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
 ]
-dependencies = ["click>=7"]
+dependencies = ["click>=7", "typing-extensions>=4.12.2"]
 
 [project.urls]
 Homepage = "https://github.com/fopina/classyclick"

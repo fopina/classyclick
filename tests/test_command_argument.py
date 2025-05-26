@@ -8,7 +8,7 @@ class Test(BaseCase):
     def test_argument(self):
         @classyclick.command()
         class Hello:
-            name: str = classyclick.argument()
+            name: str = classyclick.Argument()
 
             def __call__(self):
                 print(f'Hello, {self.name}')
@@ -39,7 +39,7 @@ Options:
     def test_metavar(self):
         @classyclick.command()
         class Hello:
-            name: str = classyclick.argument(metavar='YOUR_NAME')
+            name: str = classyclick.Argument(metavar='YOUR_NAME')
 
             def __call__(self):
                 print(f'Hello, {self.name}')
@@ -65,9 +65,9 @@ Options:
     def test_type_inference(self):
         @classyclick.command()
         class Sum:
-            a: int = classyclick.argument()
+            a: int = classyclick.Argument()
             # bad type hint but the explicit one supersedes, so test still passes
-            b: str = classyclick.argument(type=int)
+            b: str = classyclick.Argument(type=int)
 
             def __call__(self):
                 print(self.a + self.b)
@@ -80,9 +80,9 @@ Options:
     def test_type_override(self):
         @classyclick.command()
         class Sum:
-            a: int = classyclick.argument()
+            a: int = classyclick.Argument()
             # bad type hint but the explicit one supersedes, so test still passes
-            b: str = classyclick.argument(type=int)
+            b: str = classyclick.Argument(type=int)
 
             def __call__(self):
                 print(self.a + self.b)
@@ -100,7 +100,7 @@ Options:
 
         @classyclick.command()
         class DP:
-            names: list[str] = classyclick.argument(nargs=2)
+            names: list[str] = classyclick.Argument(nargs=2)
 
             def __call__(self):
                 print(f'Hello, {" and ".join(self.names)}')

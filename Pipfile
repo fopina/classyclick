@@ -1,5 +1,6 @@
 [packages]
 click = ">=7"
+typing-extensions = ">=4.12.2"
 
 [dev-packages]
 ruff = "*"
