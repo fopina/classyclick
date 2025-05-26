@@ -19,7 +19,7 @@ class Clickable(Protocol):
     """
 
 
-def command(group=None, **click_kwargs) -> Callable[[T], Union[T, Clickable]]:
+def command(cls=None, *, group=None, **click_kwargs) -> Callable[[T], Union[T, Clickable]]:
     if group is None:
         # delay import until required
         import click
@@ -59,7 +59,10 @@ def command(group=None, **click_kwargs) -> Callable[[T], Union[T, Clickable]]:
 
         return kls
 
-    return _wrapper
+    if cls is None:
+        # called with parens
+        return _wrapper
+    return _wrapper(cls)
 
 
 def _strictly_typed_dataclass(kls):

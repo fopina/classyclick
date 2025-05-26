@@ -1,3 +1,7 @@
+from dataclasses import Field
+
+from click.testing import CliRunner
+
 import classyclick
 from tests import BaseCase
 
@@ -29,3 +33,22 @@ class Test(BaseCase):
             self.assertEqual(HelloThereCommand.click.name, 'hello-there-command')
         else:
             self.assertEqual(HelloThereCommand.click.name, 'hello-there')
+
+    def test_init_defaults(self):
+        @classyclick.command()
+        class Hello:
+            name: str = classyclick.Argument()
+            age: int = classyclick.Option(default=10)
+            test: str = Field()
+
+            def __call__(self):
+                print(f'Hello {self.name}, gratz on being {self.age}')
+
+        runner = CliRunner()
+
+        result = runner.invoke(Hello.click, ['John'])
+        self.assertEqual(result.exit_code, 0)
+        self.assertEqual(result.output, 'Hello John, gratz on being 10\n')
+
+        obj = Hello()
+        self.assertEqual(obj.age, 10)
