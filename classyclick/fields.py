@@ -1,3 +1,6 @@
+import sys
+from dataclasses import MISSING
+from dataclasses import Field as DataclassField
 from typing import TYPE_CHECKING, Any, get_args, get_origin
 
 from typing_extensions import deprecated
@@ -66,10 +69,17 @@ def context_meta(key: str, **attrs: Any) -> 'ContextMeta':
     return ContextMeta(key, **attrs)
 
 
-class _Field:
+_EXTRA_DATACLASS_INIT = dict(default_factory=MISSING, init=True, repr=True, hash=None, compare=True, metadata=None)
+if sys.version_info >= (3, 10):
+    _EXTRA_DATACLASS_INIT['kw_only'] = MISSING
+
+
+class _Field(DataclassField):
     attrs: dict[Any]
 
     def __init__(self, **attrs):
+        _default = attrs.get('default', MISSING)
+        super().__init__(default=_default, **_EXTRA_DATACLASS_INIT)
         self.attrs = attrs
 
     def infer_type(self, field: 'Field'):
