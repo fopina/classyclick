@@ -1,4 +1,4 @@
-from dataclasses import Field
+from dataclasses import field
 
 from click.testing import CliRunner
 
@@ -39,7 +39,7 @@ class Test(BaseCase):
         class Hello:
             name: str = classyclick.Argument()
             age: int = classyclick.Option(default=10)
-            test: str = Field()
+            test: str = field(default=2)
 
             def __call__(self):
                 print(f'Hello {self.name}, gratz on being {self.age}')
@@ -50,5 +50,8 @@ class Test(BaseCase):
         self.assertEqual(result.exit_code, 0)
         self.assertEqual(result.output, 'Hello John, gratz on being 10\n')
 
-        obj = Hello()
+        with self.assertRaisesRegex(TypeError, "missing 1 required positional argument: 'name'"):
+            Hello()
+        obj = Hello(name='John')
+        self.assertEqual(obj.name, 'John')
         self.assertEqual(obj.age, 10)
