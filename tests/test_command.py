@@ -1,4 +1,3 @@
-from dataclasses import field
 
 from click.testing import CliRunner
 
@@ -39,7 +38,6 @@ class Test(BaseCase):
         class Hello:
             name: str = classyclick.Argument()
             age: int = classyclick.Option(default=10)
-            test: str = field(default=2)
 
             def __call__(self):
                 print(f'Hello {self.name}, gratz on being {self.age}')
