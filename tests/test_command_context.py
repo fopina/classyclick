@@ -25,18 +25,18 @@ class Test(BaseCase):
 
         @classyclick.command(group=cli)
         class Clone:
-            repo: Repo = classyclick.context_obj()
-            src: str = classyclick.argument()
-            dest: str = classyclick.argument(required=False)
+            repo: Repo = classyclick.ContextObj()
+            src: str = classyclick.Argument()
+            dest: str = classyclick.Argument(required=False)
 
             def __call__(self):
                 click.echo(f'Clone from {self.src} to {self.dest} at {self.repo.home}')
 
         @classyclick.command(group=cli)
         class Clone2:
-            ctx: Any = classyclick.context()
-            src: str = classyclick.argument()
-            dest: str = classyclick.argument(required=False)
+            ctx: Any = classyclick.Context()
+            src: str = classyclick.Argument()
+            dest: str = classyclick.Argument(required=False)
 
             def __call__(self):
                 click.echo(f'Clone from {self.src} to {self.dest} at {self.ctx.obj.home}')
@@ -67,10 +67,10 @@ class Test(BaseCase):
 
         @classyclick.command(group=cli)
         class Clone:
-            repo: str = classyclick.context_meta('repo')
-            debug: bool = classyclick.context_meta('debug')
-            src: str = classyclick.argument()
-            dest: str = classyclick.argument(required=False)
+            repo: str = classyclick.ContextMeta('repo')
+            debug: bool = classyclick.ContextMeta('debug')
+            src: str = classyclick.Argument()
+            dest: str = classyclick.Argument(required=False)
 
             def __call__(self):
                 click.echo(f'Clone from {self.src} to {self.dest} at {self.repo}')

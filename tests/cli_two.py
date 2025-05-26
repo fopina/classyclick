@@ -13,8 +13,8 @@ import classyclick
 class Hello:
     """Simple program that DOES NOT greet NAME for a total of COUNT times BECAUSE OF MISSING TYPES."""
 
-    name = classyclick.option(prompt='Your name', help='The person to greet.')
-    count = classyclick.option('-c', type=int, default=1, help='Number of greetings.')
+    name = classyclick.Option(prompt='Your name', help='The person to greet.')
+    count = classyclick.Option('-c', type=int, default=1, help='Number of greetings.')
 
     def __call__(self):
         for _ in range(self.count):
