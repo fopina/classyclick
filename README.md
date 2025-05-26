@@ -25,8 +25,8 @@ import classyclick
 class Hello:
     """Simple program that greets NAME for a total of COUNT times."""
 
-    name: str = classyclick.option(prompt='Your name', help='The person to greet.')
-    count: int = classyclick.option(default=1, help='Number of greetings.')
+    name: str = classyclick.Option(prompt='Your name', help='The person to greet.')
+    count: int = classyclick.Option(default=1, help='Number of greetings.')
 
     def __call__(self):
         for _ in range(self.count):
@@ -86,8 +86,8 @@ import classyclick
 class Hello:
     """Simple program that greets NAME for a total of COUNT times."""
 
-    name: str = classyclick.option(prompt='Your name', help='The person to greet.')
-    count: int = classyclick.option(default=1, help='Number of greetings.')
+    name: str = classyclick.Option(prompt='Your name', help='The person to greet.')
+    count: int = classyclick.Option(default=1, help='Number of greetings.')
 
     def __call__(self):
         self.greet()
@@ -132,14 +132,14 @@ Same as `click.command`, you can choose a command `name` or allow it to derive i
 
 It will also forward class `__doc__` to click to be used as description if not specified as keyword arg.
 
-### classyclick.option
+### classyclick.Option
 
 Instead of the decorator approach, this is more like [Django's models](https://docs.djangoproject.com/en/dev/topics/db/models/) to take advantage of how parameters are enumerated.
 
 As you noticed from the example, there's no need to specify an option parameter name:
 
 ```
-count: int = classyclick.option(default=1, help='Number of greetings.')
+count: int = classyclick.Option(default=1, help='Number of greetings.')
 ```
 
 `classyclick` makes use of the field names to infer a default (`--count` in example).
@@ -147,40 +147,40 @@ count: int = classyclick.option(default=1, help='Number of greetings.')
 To add a short version *on top of it*:
 
 ```
-count: int = classyclick.option('-c', default=1, help='Number of greetings.')
+count: int = classyclick.Option('-c', default=1, help='Number of greetings.')
 ```
 
 And to only include the short, you can use the only keyword argument that is not forwarded to [@click.option](https://click.palletsprojects.com/en/stable/api/#click.option): `default_parameter`
 
 ```
-count: int = classyclick.option('-c', default_parameter=False, default=1, help='Number of greetings.')
+count: int = classyclick.Option('-c', default_parameter=False, default=1, help='Number of greetings.')
 ```
 
-`classyclick.option` also infers **type** from type hints, then passed to `click.option`.
+`classyclick.Option` also infers **type** from type hints, then passed to `click.option`.
 
 ```python
 # The resulting click.option will use type=Path
-output: Path = classyclick.option()
+output: Path = classyclick.Option()
 
 # You can still override it and mix things if you want ¯\_(ツ)_/¯
-other_output: Any = classyclick.option(type=str)
+other_output: Any = classyclick.Option(type=str)
 ```
 
 When type is `bool`, it will set `is_flag=True` as well. If for some reason you don't want that, it can still be overriden.
 
 ```python
 # This results in click.option('--verbose', type=bool, is_flag=True)
-verbose: bool = classyclick.option()
+verbose: bool = classyclick.Option()
 
 # As mentioned, it can always be overriden if you need the weird behavior of a non-flag bool option...
-weird: bool = classyclick.option(is_flag=False)
+weird: bool = classyclick.Option(is_flag=False)
 ```
 
-### classyclick.argument
+### classyclick.Argument
 
-Similar to `classyclick.option`, this is mostly wrapping [@click.argument](https://click.palletsprojects.com/en/stable/api/#click.argument) so it can be used in fields.
+Similar to `classyclick.Option`, this is mostly wrapping [@click.argument](https://click.palletsprojects.com/en/stable/api/#click.argument) so it can be used in fields.
 
-Argument name is inferred from the field name and, same as `classyclick.option`, type from field.type.  
+Argument name is inferred from the field name and, same as `classyclick.Option`, type from field.type.  
 Again, type can be overriden, however not argument name as it has to match the property. For display purposes, you can use `metavar=`.
 
 ```python
@@ -188,7 +188,7 @@ Again, type can be overriden, however not argument name as it has to match the p
 class Next:
     """Output the next number."""
 
-    your_number: int = classyclick.argument()
+    your_number: int = classyclick.Argument()
 
     def __call__(self):
         click.echo(self.your_number + 1)
@@ -207,7 +207,7 @@ $ ./cli_four.py 5
 6
 ```
 
-### classyclick.context
+### classyclick.Context
 
 Like [@click.pass_context](https://click.palletsprojects.com/en/stable/api/#click.pass_context), this exposes `click.Context` in a command property.
 
@@ -216,14 +216,14 @@ Like [@click.pass_context](https://click.palletsprojects.com/en/stable/api/#clic
 class Next:
     """Output the next number."""
 
-    your_number: int = classyclick.argument()
-    the_context: Any = classyclick.context()
+    your_number: int = classyclick.Argument()
+    the_context: Any = classyclick.Context()
 
     def __call__(self):
         click.echo(self.your_number + self.the_context.obj.step_number)
 ```
 
-### classyclick.context_obj
+### classyclick.ContextObj
 
 Like [@click.pass_obj](https://click.palletsprojects.com/en/stable/api/#click.pass_obj), this assigns `click.Context.obj` to a command property, when you only want the user data rather than the whole context.
 
@@ -232,14 +232,14 @@ Like [@click.pass_obj](https://click.palletsprojects.com/en/stable/api/#click.pa
 class Next:
     """Output the next number."""
 
-    your_number: int = classyclick.argument()
-    the_context: Any = classyclick.context_obj()
+    your_number: int = classyclick.Argument()
+    the_context: Any = classyclick.ContextObj()
 
     def __call__(self):
         click.echo(self.your_number + self.the_context.step_number)
 ```
 
-### classyclick.context_meta
+### classyclick.ContextMeta
 
 Like [@click.pass_meta_key](https://click.palletsprojects.com/en/stable/api/#click.decorators.pass_meta_key), this assigns `click.Context.meta[KEY]` to a command property, without handling the whole context.
 
@@ -248,8 +248,8 @@ Like [@click.pass_meta_key](https://click.palletsprojects.com/en/stable/api/#cli
 class Next:
     """Output the next number."""
 
-    your_number: int = classyclick.argument()
-    step_number: int = classyclick.context_meta("step_number")
+    your_number: int = classyclick.Argument()
+    step_number: int = classyclick.ContextMeta("step_number")
 
     def __call__(self):
         click.echo(self.your_number + self.step_number)
