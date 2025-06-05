@@ -161,3 +161,51 @@ class Test(BaseCase):
             self.assertEqual(hello_command.name, 'hello-command')
         else:
             self.assertEqual(hello_command.name, 'hello')
+
+    def test_no_context_available(self):
+        @click.command()
+        @click.argument('src')
+        @click.argument('dest', required=False)
+        @click.pass_context
+        def clone(o, src, dest):
+            click.echo(f'Clone from {src} to {dest} at {o}')
+
+        runner = CliRunner()
+
+        result = runner.invoke(clone, args=['1'])
+        self.assertIsNone(result.exception)
+        self.assertEqual(result.exit_code, 0)
+        self.assertRegex(result.output, r'Clone from 1 to None at <click.core.Context.*?>\n')
+
+    def test_no_context_obj_available(self):
+        @click.command()
+        @click.argument('src')
+        @click.argument('dest', required=False)
+        @click.pass_obj
+        def clone(o, src, dest):
+            click.echo(f'Clone from {src} to {dest} at {o}')
+
+        runner = CliRunner()
+
+        result = runner.invoke(clone, args=['1'])
+        self.assertIsNone(result.exception)
+        self.assertEqual(result.exit_code, 0)
+        self.assertEqual(result.output, 'Clone from 1 to None at None\n')
+
+    def test_no_context_meta_key_available(self):
+        if self.click_version < (8, 0):
+            self.skipTest('pass_meta_key requires click 8.0')
+
+        @click.command()
+        @click.argument('src')
+        @click.argument('dest', required=False)
+        @click.decorators.pass_meta_key('wtv')
+        def clone(o, src, dest):
+            click.echo(f'Clone from {src} to {dest} at {o}')
+
+        runner = CliRunner()
+
+        result = runner.invoke(clone, args=['1'])
+        self.assertEqual(result.exception.__class__, KeyError)
+        self.assertEqual(result.exception.args, ('wtv',))
+        self.assertEqual(result.exit_code, 1)

@@ -76,9 +76,11 @@ if sys.version_info >= (3, 10):
 
 class _Field(DataclassField):
     attrs: dict[Any]
+    _click_type = MISSING
+    # it is set in Field.__init__ but set it first, as `set_type` will be called before it is initialized in Field.__init__
+    default = MISSING
 
     def __init__(self, **attrs):
-        self._click_type = MISSING
         _default = attrs.get('default', MISSING)
         super().__init__(default=_default, **_EXTRA_DATACLASS_INIT)
         self.attrs = attrs
@@ -94,9 +96,9 @@ class _Field(DataclassField):
         return self._click_type
 
     def set_type(self, val):
-        print(val)
-        self.default = None
         self._click_type = val
+        if self.default is MISSING:
+            self._click_update_dataclass_default()
 
     # VERY HACKY ALERT
     # Wrap Field.type with a setter to be able to catch it, calculate click default value (which changes based on type) and reset it for the dataclass Field
@@ -104,6 +106,9 @@ class _Field(DataclassField):
     # https://github.com/python/cpython/blob/f690a6f1c2199a075ceb49a6b583143ed6cafb5b/Lib/dataclasses.py#L689
     # This needs to be covered heavily by unit tests
     type = property(get_type, set_type)
+
+    def _click_update_dataclass_default(self):
+        """to be implemented by each class, defaults to no action"""
 
     @property
     def click(self) -> 'click':
@@ -184,6 +189,9 @@ class Context(_Field):
     this exposes `click.Context` in a command property.
     """
 
+    def __init__(self, **attrs):
+        super().__init__(**attrs)
+
     def store_field_name(self, command: 'Command', field: 'Field'):
         if not hasattr(command, '__classy_context__'):
             command.__classy_context__ = []  # type: ignore
@@ -213,8 +221,8 @@ class ContextMeta(Context):
 
     def __init__(self, key: str, **attrs):
         super().__init__(**attrs)
-        self.key = key
+        self._ctx_meta_key = key
 
     def __call__(self, command: 'Command', field: 'Field'):
         self.store_field_name(command, field)
-        return self.click.decorators.pass_meta_key(self.key, **self.attrs)(command)
+        return self.click.decorators.pass_meta_key(self._ctx_meta_key, **self.attrs)(command)
