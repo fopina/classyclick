@@ -6,8 +6,6 @@ from typing import TYPE_CHECKING, Any, get_args, get_origin
 from typing_extensions import deprecated
 
 if TYPE_CHECKING:
-    from dataclasses import Field
-
     import click
     from click import Command
 
@@ -85,20 +83,20 @@ class _Field(DataclassField):
         _default = attrs.get('default', self.default)
         super().__init__(default=_default, **_EXTRA_DATACLASS_INIT)
 
-    def infer_type(self, field: 'Field'):
+    def infer_type(self):
         if 'type' not in self.attrs:
-            if (self.attrs.get('multiple', False) or self.attrs.get('nargs', 1) > 1) and get_origin(field.type) is list:
-                self.attrs['type'] = get_args(field.type)[0]
+            if (self.attrs.get('multiple', False) or self.attrs.get('nargs', 1) > 1) and get_origin(self.type) is list:
+                self.attrs['type'] = get_args(self.type)[0]
             else:
-                self.attrs['type'] = field.type
+                self.attrs['type'] = self.type
 
     def get_type(self):
         return self._click_type
 
     def set_type(self, val):
-        changed = self._click_type != val
+        old_val = self._click_type
         self._click_type = val
-        if self.default is MISSING and changed:
+        if old_val is None and old_val != val:
             self._click_update_dataclass_default()
 
     # VERY HACKY ALERT
@@ -118,7 +116,7 @@ class _Field(DataclassField):
 
         return click
 
-    def __call__(self, command: 'Command', field: 'Field') -> 'Command':
+    def __call__(self, command: 'Command') -> 'Command':
         """To be implemented in subclasses"""
 
 
@@ -137,18 +135,19 @@ class Argument(_Field):
             attrs['type'] = type
         super().__init__(**attrs)
 
-    def __call__(self, command: 'Command', field: 'Field'):
-        self.infer_type(field)
+    def _click_argument(self):
+        return self.click.argument(self.name, **self.attrs)
 
-        return self.click.argument(field.name, **self.attrs)(command)
+    def __call__(self, command: 'Command'):
+        return self._click_argument()(command)
 
     def _click_update_dataclass_default(self):
-        o = _FakeCommand()
-        self.click.argument('x', **self.attrs)(o)
-        if not o.param.required:
-            if self.default is MISSING:
+        self.infer_type()
+        if self.default is MISSING:
+            o = _FakeCommand()
+            self._click_argument()(o)
+            if not o.param.required:
                 self.default = None
-        return super()._click_update_dataclass_default()
 
 
 class Option(_Field):
@@ -167,35 +166,42 @@ class Option(_Field):
     This is an OPTIONAL value, unless you set required=True. Make sure to declare it appropriately: required fields declared always before optional fields.
     """
 
-    default = None
-
     def __init__(self, *param_decls: list[str], default_parameter=True, **attrs):
         super().__init__(**attrs)
         self.param_decls = param_decls
         self.default_parameter = default_parameter
 
-    def __call__(self, command: 'Command', field: 'Field'):
-        for param in self.param_decls:
-            if param[0] != '-':
-                raise TypeError(f'{command.__name__} option {field.name}: do not specify a name, it is already added')
-
+    def _click_option(self):
         # bake field.name as option name
-        param_decls = (field.name,) + self.param_decls
+        param_decls = (self.name,) + self.param_decls
 
         if self.default_parameter:
-            long_name = f'--{utils.snake_kebab(field.name)}'
+            long_name = f'--{utils.snake_kebab(self.name)}'
             if long_name not in self.param_decls:
                 param_decls = (long_name,) + param_decls
 
-        self.infer_type(field)
-
-        if self.attrs['type'] is bool and 'is_flag' not in self.attrs:
+        if self.attrs.get('type') is bool and 'is_flag' not in self.attrs:
             # drop explicit type because of bug in click 8.2.0
             # https://github.com/pallets/click/issues/2894 / https://github.com/pallets/click/pull/2829
             del self.attrs['type']
             self.attrs['is_flag'] = True
 
-        return self.click.option(*param_decls, **self.attrs)(command)
+        return self.click.option(*param_decls, **self.attrs)
+
+    def __call__(self, command: 'Command'):
+        for param in self.param_decls:
+            if param[0] != '-':
+                raise TypeError(f'{command.__name__} option {self.name}: do not specify a name, it is already added')
+
+        return self._click_option()(command)
+
+    def _click_update_dataclass_default(self):
+        self.infer_type()
+        if self.default is MISSING:
+            o = _FakeCommand()
+            self._click_option()(o)
+            if not o.param.required:
+                self.default = o.param.default
 
 
 class Context(_Field):
@@ -208,13 +214,13 @@ class Context(_Field):
     # in click, it is always set to something - for dataclass use, let's just set it to None for now
     default = None
 
-    def store_field_name(self, command: 'Command', field: 'Field'):
+    def store_field_name(self, command: 'Command'):
         if not hasattr(command, '__classy_context__'):
             command.__classy_context__ = []  # type: ignore
-        command.__classy_context__.insert(0, field.name)
+        command.__classy_context__.insert(0, self.name)
 
-    def __call__(self, command: 'Command', field: 'Field'):
-        self.store_field_name(command, field)
+    def __call__(self, command: 'Command'):
+        self.store_field_name(command)
         return self.click.pass_context(command)
 
 
@@ -228,8 +234,8 @@ class ContextObj(Context):
     # in click, default ctx.obj is None (and there is always a ctx) - so default to None for dataclass
     default = None
 
-    def __call__(self, command: 'Command', field: 'Field'):
-        self.store_field_name(command, field)
+    def __call__(self, command: 'Command'):
+        self.store_field_name(command)
         return self.click.pass_obj(command)
 
 
@@ -247,8 +253,8 @@ class ContextMeta(Context):
         super().__init__(**attrs)
         self._ctx_meta_key = key
 
-    def __call__(self, command: 'Command', field: 'Field'):
-        self.store_field_name(command, field)
+    def __call__(self, command: 'Command'):
+        self.store_field_name(command)
         return self.click.decorators.pass_meta_key(self._ctx_meta_key, **self.attrs)(command)
 
 

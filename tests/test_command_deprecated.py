@@ -20,8 +20,8 @@ class Test(BaseCase):
         @classyclick.command(group=cli)
         class Hello:
             name: str = classyclick.argument()
-            country: str = classyclick.context_meta('country')
             age: int = classyclick.option(required=True, help='Age')
+            country: str = classyclick.context_meta('country')
             obj: any = classyclick.context_obj()
             ctx: any = classyclick.context()
 
