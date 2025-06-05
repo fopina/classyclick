@@ -1,5 +1,5 @@
 from dataclasses import dataclass, fields
-from typing import TYPE_CHECKING, Callable, Protocol, Type, TypeVar, Union
+from typing import TYPE_CHECKING, Callable, ClassVar, Generic, TypeVar, Union, overload
 
 if TYPE_CHECKING:
     from click import Command
@@ -7,26 +7,33 @@ if TYPE_CHECKING:
 from . import utils
 from .fields import _Field
 
-T = TypeVar('T')
+T = TypeVar('T', bound=type)
 
 
-class Clickable(Protocol):
+class Clickable(Generic[T]):
     """to merge with wrapped classed for type hints"""
 
-    click: 'Command'
+    click: ClassVar['Command']
     """
     Run click command
     """
 
 
-def command(cls=None, *, group=None, **click_kwargs) -> Callable[[Type[T]], Union[Type[T], Clickable]]:
+ClickableT = Union[T, Clickable]
+
+
+@overload
+def command(cls=T) -> ClickableT: ...
+@overload
+def command(*, group=None, **click_kwargs) -> Callable[[T], ClickableT]: ...
+def command(cls=None, *, group=None, **click_kwargs):
     if group is None:
         # delay import until required
         import click
 
         group = click
 
-    def _wrapper(kls: Type[T]) -> Union[Type[T], Clickable]:
+    def _wrapper(kls: T) -> ClickableT:
         if not hasattr(kls, '__bases__'):
             name = getattr(kls, '__name__', str(kls))
             raise ValueError(f'{name} is not a class - classy stands for classes! Use @click.command instead?')
