@@ -209,6 +209,7 @@ class Context(_Field):
     """
     Like :meth:`click.pass_context` (see https://click.palletsprojects.com/en/stable/api/#click.pass_context),
     this exposes `click.Context` in a command property.
+
     This is an OPTIONAL value (declare it after required ones)
     """
 
@@ -229,6 +230,7 @@ class ContextObj(Context):
     """
     Like :meth:`click.pass_obj` (see https://click.palletsprojects.com/en/stable/api/#click.pass_obj),
     this assigns `click.Context.obj` to a command property, when you only want the user data rather than the whole context.
+
     This is an OPTIONAL value (declare it after required ones)
     """
 
@@ -244,6 +246,7 @@ class ContextMeta(Context):
     """
     Like :meth:`click.pass_meta_key` (see https://click.palletsprojects.com/en/stable/api/#click.decorators.pass_meta_key),
     this assigns `click.Context.meta[KEY]` to a command property, without handling the whole context.
+
     This is a REQUIRED value (declare it before optional ones)
     """
 
