@@ -38,8 +38,7 @@ class Test(BaseCase):
             class Sum:
                 a: int = classyclick.Option('arc')
 
-                def __call__(self):
-                    print(self.a + self.b)
+                def __call__(self): ...
 
         self.assertRaisesRegex(TypeError, 'sum option a: do not specify a name, it is already added', _a)
 

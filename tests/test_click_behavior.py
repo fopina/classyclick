@@ -79,6 +79,63 @@ class Test(BaseCase):
         self.assertEqual(result.exit_code, 0)
         self.assertEqual(result.output, 'Hello, 1\n')
 
+    def test_argument_required_false(self):
+        @click.command()
+        @click.argument('src')
+        @click.argument('dest', required=False)
+        def clone(src, dest):
+            click.echo(f'Clone from {src} to {dest}')
+
+        runner = CliRunner()
+
+        result = runner.invoke(clone, args=['1'])
+        self.assertIsNone(result.exception)
+        self.assertEqual(result.exit_code, 0)
+        self.assertEqual(result.output, 'Clone from 1 to None\n')
+
+        result = runner.invoke(clone, args=['1', '2'])
+        self.assertIsNone(result.exception)
+        self.assertEqual(result.exit_code, 0)
+        self.assertEqual(result.output, 'Clone from 1 to 2\n')
+
+    def test_argument_default(self):
+        @click.command()
+        @click.argument('src')
+        @click.argument('dest', default=5)
+        def clone(src, dest):
+            click.echo(f'Clone from {src} to {dest}')
+
+        runner = CliRunner()
+
+        result = runner.invoke(clone, args=['1'])
+        self.assertIsNone(result.exception)
+        self.assertEqual(result.exit_code, 0)
+        self.assertEqual(result.output, 'Clone from 1 to 5\n')
+
+        result = runner.invoke(clone, args=['1', '2'])
+        self.assertIsNone(result.exception)
+        self.assertEqual(result.exit_code, 0)
+        self.assertEqual(result.output, 'Clone from 1 to 2\n')
+
+    def test_argument_required_with_default(self):
+        @click.command()
+        @click.argument('src')
+        @click.argument('dest', default=5, required=True)
+        def clone(src, dest):
+            click.echo(f'Clone from {src} to {dest}')
+
+        runner = CliRunner()
+
+        result = runner.invoke(clone, args=['1'])
+        self.assertIsNone(result.exception)
+        self.assertEqual(result.exit_code, 0)
+        self.assertEqual(result.output, 'Clone from 1 to 5\n')
+
+        result = runner.invoke(clone, args=['1', '2'])
+        self.assertIsNone(result.exception)
+        self.assertEqual(result.exit_code, 0)
+        self.assertEqual(result.output, 'Clone from 1 to 2\n')
+
     def test_context(self):
         # example from https://click.palletsprojects.com/en/stable/complex/#the-root-command
         class Repo(object):
@@ -161,3 +218,51 @@ class Test(BaseCase):
             self.assertEqual(hello_command.name, 'hello-command')
         else:
             self.assertEqual(hello_command.name, 'hello')
+
+    def test_no_context_available(self):
+        @click.command()
+        @click.argument('src')
+        @click.argument('dest', required=False)
+        @click.pass_context
+        def clone(o, src, dest):
+            click.echo(f'Clone from {src} to {dest} at {o}')
+
+        runner = CliRunner()
+
+        result = runner.invoke(clone, args=['1'])
+        self.assertIsNone(result.exception)
+        self.assertEqual(result.exit_code, 0)
+        self.assertRegex(result.output, r'Clone from 1 to None at <click.core.Context.*?>\n')
+
+    def test_no_context_obj_available(self):
+        @click.command()
+        @click.argument('src')
+        @click.argument('dest', required=False)
+        @click.pass_obj
+        def clone(o, src, dest):
+            click.echo(f'Clone from {src} to {dest} at {o}')
+
+        runner = CliRunner()
+
+        result = runner.invoke(clone, args=['1'])
+        self.assertIsNone(result.exception)
+        self.assertEqual(result.exit_code, 0)
+        self.assertEqual(result.output, 'Clone from 1 to None at None\n')
+
+    def test_no_context_meta_key_available(self):
+        if self.click_version < (8, 0):
+            self.skipTest('pass_meta_key requires click 8.0')
+
+        @click.command()
+        @click.argument('src')
+        @click.argument('dest', required=False)
+        @click.decorators.pass_meta_key('wtv')
+        def clone(o, src, dest):
+            click.echo(f'Clone from {src} to {dest} at {o}')
+
+        runner = CliRunner()
+
+        result = runner.invoke(clone, args=['1'])
+        self.assertEqual(result.exception.__class__, KeyError)
+        self.assertEqual(result.exception.args, ('wtv',))
+        self.assertEqual(result.exit_code, 1)

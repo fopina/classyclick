@@ -51,7 +51,7 @@ def command(cls=None, *, group=None, **click_kwargs) -> Callable[[T], Union[T, C
         # apply in reverse order to match click's behavior - it DOES MATTER when multiple click.argument
         for field in fields(kls)[::-1]:
             if isinstance(field, _Field):
-                func = field(func, field)
+                func = field(func)
 
         command = group.command(**click_kwargs)(func)
 
