@@ -81,9 +81,9 @@ class _Field(DataclassField):
     default = MISSING
 
     def __init__(self, **attrs):
-        _default = attrs.get('default', MISSING)
-        super().__init__(default=_default, **_EXTRA_DATACLASS_INIT)
         self.attrs = attrs
+        _default = attrs.get('default', self.default)
+        super().__init__(default=_default, **_EXTRA_DATACLASS_INIT)
 
     def infer_type(self, field: 'Field'):
         if 'type' not in self.attrs:
@@ -96,8 +96,9 @@ class _Field(DataclassField):
         return self._click_type
 
     def set_type(self, val):
+        changed = self._click_type != val
         self._click_type = val
-        if self.default is MISSING:
+        if self.default is MISSING and changed:
             self._click_update_dataclass_default()
 
     # VERY HACKY ALERT
@@ -127,6 +128,8 @@ class Argument(_Field):
 
     Same goal as :meth:`click.argument` (see https://click.palletsprojects.com/en/latest/api/#click.Argument) decorator,
     but no parameters are needed: field name is used as name of the argument.
+
+    This is a REQUIRED value, unless you set required=False. Make sure to declare it appropriately: required fields declared always before optional fields.
     """
 
     def __init__(self, *, type=None, **attrs: Any):
@@ -138,6 +141,13 @@ class Argument(_Field):
         self.infer_type(field)
 
         return self.click.argument(field.name, **self.attrs)(command)
+
+    def _click_update_dataclass_default(self):
+        o = _FakeCommand()
+        self.click.argument('x', **self.attrs)(o)
+        if o.param.default is MISSING and not o.param.required:
+            self.default = None
+        return super()._click_update_dataclass_default()
 
 
 class Option(_Field):
@@ -152,7 +162,11 @@ class Option(_Field):
       * If the field (this option is attached to) is named `dry_run`, `default_parameter` will automatically add `--dry-run` to its `param_decls`
     * Type based type hint, if none is specified
     * No "name" is allowed, as that's already infered from field.name - that means the only positional arguments allowed are the ones that start with "-"
+
+    This is an OPTIONAL value, unless you set required=True. Make sure to declare it appropriately: required fields declared always before optional fields.
     """
+
+    default = None
 
     def __init__(self, *param_decls: list[str], default_parameter=True, **attrs):
         super().__init__(**attrs)
@@ -187,10 +201,11 @@ class Context(_Field):
     """
     Like :meth:`click.pass_context` (see https://click.palletsprojects.com/en/stable/api/#click.pass_context),
     this exposes `click.Context` in a command property.
+    This is an OPTIONAL value (declare it after required ones)
     """
 
-    def __init__(self, **attrs):
-        super().__init__(**attrs)
+    # in click, it is always set to something - for dataclass use, let's just set it to None for now
+    default = None
 
     def store_field_name(self, command: 'Command', field: 'Field'):
         if not hasattr(command, '__classy_context__'):
@@ -206,7 +221,11 @@ class ContextObj(Context):
     """
     Like :meth:`click.pass_obj` (see https://click.palletsprojects.com/en/stable/api/#click.pass_obj),
     this assigns `click.Context.obj` to a command property, when you only want the user data rather than the whole context.
+    This is an OPTIONAL value (declare it after required ones)
     """
+
+    # in click, default ctx.obj is None (and there is always a ctx) - so default to None for dataclass
+    default = None
 
     def __call__(self, command: 'Command', field: 'Field'):
         self.store_field_name(command, field)
@@ -217,7 +236,11 @@ class ContextMeta(Context):
     """
     Like :meth:`click.pass_meta_key` (see https://click.palletsprojects.com/en/stable/api/#click.decorators.pass_meta_key),
     this assigns `click.Context.meta[KEY]` to a command property, without handling the whole context.
+    This is a REQUIRED value (declare it before optional ones)
     """
+
+    # in click, non-existent key throws KeyError, so make this a required dataclass field
+    default = MISSING
 
     def __init__(self, key: str, **attrs):
         super().__init__(**attrs)
@@ -226,3 +249,14 @@ class ContextMeta(Context):
     def __call__(self, command: 'Command', field: 'Field'):
         self.store_field_name(command, field)
         return self.click.decorators.pass_meta_key(self._ctx_meta_key, **self.attrs)(command)
+
+
+class _FakeCommand:
+    """used to be able to extract param_memo from click argument/option calls..."""
+
+    def __init__(self):
+        self.__click_params__ = []
+
+    @property
+    def param(self):
+        return self.__click_params__[0]
