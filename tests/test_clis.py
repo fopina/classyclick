@@ -2,11 +2,11 @@ from unittest import TestCase
 
 from click.testing import CliRunner
 
-from .cli_one import Hello
-
 
 class Test(TestCase):
     def test_hello(self):
+        from .cli_one import Hello
+
         runner = CliRunner()
         result = runner.invoke(Hello.click, args=['--name', 'classyclick'])
 
@@ -14,6 +14,8 @@ class Test(TestCase):
         self.assertIn('Hello, classyclick!', result.output)
 
     def test_hello_class(self):
+        from .cli_one import Hello
+
         kls = Hello
         kls(name='classyclick')
 

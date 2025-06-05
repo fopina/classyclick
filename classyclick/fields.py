@@ -171,7 +171,11 @@ class Option(_Field):
         self.param_decls = param_decls
         self.default_parameter = default_parameter
 
-    def _click_option(self):
+    def __call__(self, command: 'Command'):
+        for param in self.param_decls:
+            if param[0] != '-':
+                raise TypeError(f'{command.__name__} option {self.name}: do not specify a name, it is already added')
+
         # bake field.name as option name
         param_decls = (self.name,) + self.param_decls
 
@@ -186,20 +190,17 @@ class Option(_Field):
             del self.attrs['type']
             self.attrs['is_flag'] = True
 
-        return self.click.option(*param_decls, **self.attrs)
-
-    def __call__(self, command: 'Command'):
-        for param in self.param_decls:
-            if param[0] != '-':
-                raise TypeError(f'{command.__name__} option {self.name}: do not specify a name, it is already added')
-
-        return self._click_option()(command)
+        return self.click.option(*param_decls, **self.attrs)(command)
 
     def _click_update_dataclass_default(self):
         self.infer_type()
         if self.default is MISSING:
             o = _FakeCommand()
-            self._click_option()(o)
+            try:
+                self(o)
+            except TypeError:
+                # let it error out later with real command
+                return
             if not o.param.required:
                 self.default = o.param.default
 
@@ -263,6 +264,7 @@ class _FakeCommand:
 
     def __init__(self):
         self.__click_params__ = []
+        self.__name__ = 'x'
 
     @property
     def param(self):
