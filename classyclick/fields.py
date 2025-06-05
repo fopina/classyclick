@@ -78,6 +78,7 @@ class _Field(DataclassField):
     attrs: dict[Any]
 
     def __init__(self, **attrs):
+        self._click_type = MISSING
         _default = attrs.get('default', MISSING)
         super().__init__(default=_default, **_EXTRA_DATACLASS_INIT)
         self.attrs = attrs
@@ -88,6 +89,14 @@ class _Field(DataclassField):
                 self.attrs['type'] = get_args(field.type)[0]
             else:
                 self.attrs['type'] = field.type
+
+    def get_type(self):
+        return self._click_type
+
+    def set_type(self, val):
+        self._click_type = val
+
+    type = property(get_type, set_type)
 
     @property
     def click(self) -> 'click':

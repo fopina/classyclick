@@ -52,3 +52,21 @@ class Test(BaseCase):
         obj = Hello(name='John')
         self.assertEqual(obj.name, 'John')
         self.assertEqual(obj.age, 10)
+
+    def test_defaults_and_required(self):
+        """https://github.com/fopina/classyclick/issues/30"""
+
+        @classyclick.command()
+        class Hello:
+            age: int = classyclick.Option(default=10)
+            # str Option without explicit default, means default=None - make sure dataclass also takes it as such
+            name: str = classyclick.Option()
+
+            def __call__(self):
+                print(f'Hello {self.name}, gratz on being {self.age}')
+
+        runner = CliRunner()
+
+        result = runner.invoke(Hello.click)
+        self.assertEqual(result.exit_code, 0)
+        self.assertEqual(result.output, 'Hello None, gratz on being 10\n')
