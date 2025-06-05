@@ -94,8 +94,15 @@ class _Field(DataclassField):
         return self._click_type
 
     def set_type(self, val):
+        print(val)
+        self.default = None
         self._click_type = val
 
+    # VERY HACKY ALERT
+    # Wrap Field.type with a setter to be able to catch it, calculate click default value (which changes based on type) and reset it for the dataclass Field
+    # this relies on the fact that dataclasses._get_field sets Field.type before reading Field.default...!
+    # https://github.com/python/cpython/blob/f690a6f1c2199a075ceb49a6b583143ed6cafb5b/Lib/dataclasses.py#L689
+    # This needs to be covered heavily by unit tests
     type = property(get_type, set_type)
 
     @property
