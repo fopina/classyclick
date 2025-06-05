@@ -1,5 +1,5 @@
 from dataclasses import dataclass, fields
-from typing import TYPE_CHECKING, Callable, Protocol, TypeVar, Union
+from typing import TYPE_CHECKING, Callable, Protocol, Type, TypeVar, Union
 
 if TYPE_CHECKING:
     from click import Command
@@ -19,14 +19,14 @@ class Clickable(Protocol):
     """
 
 
-def command(cls=None, *, group=None, **click_kwargs) -> Callable[[T], Union[T, Clickable]]:
+def command(cls=None, *, group=None, **click_kwargs) -> Callable[[Type[T]], Union[Type[T], Clickable]]:
     if group is None:
         # delay import until required
         import click
 
         group = click
 
-    def _wrapper(kls: T) -> Union[T, Clickable]:
+    def _wrapper(kls: Type[T]) -> Union[Type[T], Clickable]:
         if not hasattr(kls, '__bases__'):
             name = getattr(kls, '__name__', str(kls))
             raise ValueError(f'{name} is not a class - classy stands for classes! Use @click.command instead?')
