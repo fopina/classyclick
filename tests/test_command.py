@@ -1,3 +1,5 @@
+import inspect
+
 from click.testing import CliRunner
 
 import classyclick
@@ -119,3 +121,18 @@ class Test(BaseCase):
                 name: str = classyclick.Argument()
 
                 def __call__(self): ...
+
+    def test_dataclass_typehints(self):
+        @classyclick.command()
+        class Hello:
+            name: str = classyclick.Argument()
+            age: int = classyclick.Option(default=10)
+
+            def __call__(self):
+                print(f'Hello {self.name}, gratz on being {self.age}')
+
+        with self.assertRaisesRegex(TypeError, "missing 1 required positional argument: 'name'"):
+            Hello()
+
+        self.assertEqual(Hello('x').age, 10)
+        self.assertEqual(str(inspect.signature(Hello)), '(name: str, age: int = 10) -> None')
