@@ -135,17 +135,14 @@ class Argument(_Field):
             attrs['type'] = type
         super().__init__(**attrs)
 
-    def _click_argument(self):
-        return self.click.argument(self.name, **self.attrs)
-
     def __call__(self, command: 'Command'):
-        return self._click_argument()(command)
+        return self.click.argument(self.name, **self.attrs)(command)
 
     def _click_update_dataclass_default(self):
         self.infer_type()
         if self.default is MISSING:
             o = _FakeCommand()
-            self._click_argument()(o)
+            self(o)
             if not o.param.required:
                 self.default = None
 
