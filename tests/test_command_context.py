@@ -36,7 +36,7 @@ class Test(BaseCase):
         class Clone2:
             src: str = classyclick.Argument()
             ctx: Any = classyclick.Context()
-            dest: str = classyclick.Argument(default=5)
+            dest: str = classyclick.Argument(required=False)
 
             def __call__(self):
                 click.echo(f'Clone from {self.src} to {self.dest} at {self.ctx.obj.home}')

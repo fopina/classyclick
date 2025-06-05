@@ -145,8 +145,9 @@ class Argument(_Field):
     def _click_update_dataclass_default(self):
         o = _FakeCommand()
         self.click.argument('x', **self.attrs)(o)
-        if o.param.default is MISSING and not o.param.required:
-            self.default = None
+        if not o.param.required:
+            if self.default is MISSING:
+                self.default = None
         return super()._click_update_dataclass_default()
 
 
