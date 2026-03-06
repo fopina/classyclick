@@ -27,7 +27,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip install uv
-          uv sync --group dev
+          uv sync --dev
 
       - name: Lint check
         run: |
@@ -51,7 +51,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip install uv
-          uv sync --group dev
+          uv sync --dev
       
       - name: Install click ${{ matrix.click-version }}
         run: |
