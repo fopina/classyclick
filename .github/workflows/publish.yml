@@ -62,9 +62,7 @@ jobs:
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.twine_token }}
-        run: |
-          uv run pyproject-build
-          uv run twine upload --verbose --repository ${{ inputs.repository }} dist/*
+        run: uv run twine upload --verbose --repository ${{ inputs.repository }} dist/*
       - name: highlight
         run: |
           INDEX=""
