@@ -24,6 +24,16 @@ classifiers = [
 ]
 dependencies = ["click>=7", "typing-extensions>=4.12.2"]
 
+[dependency-groups]
+dev = [
+    "build",
+    "pytest",
+    "pytest-cov",
+    "pytest-socket",
+    "ruff",
+    "twine",
+]
+
 [project.urls]
 Homepage = "https://github.com/fopina/classyclick"
 
