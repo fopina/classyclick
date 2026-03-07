@@ -3,6 +3,8 @@ from pathlib import Path
 from typing import Optional
 import re
 import shlex
+import subprocess
+import sys
 import unittest
 
 
@@ -10,7 +12,7 @@ README_PATH = Path(__file__).resolve().parents[1] / 'README.md'
 TESTS_DIR = Path(__file__).resolve().parent
 
 EXAMPLE_RE = re.compile(
-    r"(?ms)^[ \t]*<!--\s*example-id:\s*(?P<marker>.+?)\s*-->\s*```(?P<lang>\S*)\s*\n(?P<code>.*?)```"
+    r"(?ms)^[ \t]*<!--\s*(?P<kind>example-id(?:-output)?)\s*:\s*(?P<marker>.+?)\s*-->\s*```(?P<lang>\S*)\s*\n(?P<code>.*?)```"
 )
 README_EXCLUDE_RE = re.compile(r"^\s*#\s*README-EXCLUDE\b")
 README_BLOCK_START_RE = re.compile(r"^\s*#\s*README(?::(?P<block_id>\S+))?\s*\+\+\+\s*$")
@@ -25,6 +27,7 @@ class ReadmeExample:
     args: list[str]
     language: str
     code: str
+    is_output: bool
 
 
 def _normalize_cli_target(cli_target: str) -> str:
@@ -59,6 +62,7 @@ def _iter_readme_examples():
             args=cli_args,
             language=match.group('lang'),
             code=match.group('code').rstrip(),
+            is_output=match.group('kind') == 'example-id-output',
         )
 
 
@@ -127,6 +131,29 @@ def _cli_file_block_groups(cli_file: Path) -> dict[Optional[str], list[str]]:
     return {None: [cli_file.read_text(encoding='utf-8').rstrip()]}
 
 
+def _normalize_output(output: str) -> str:
+    lines = output.rstrip().splitlines()
+    while lines and lines[0].lstrip().startswith('$'):
+        lines = lines[1:]
+    return '\n'.join(lines).rstrip()
+
+
+def _run_cli_output(cli_target: str, args: list[str]) -> str:
+    cmd = [cli_target, *args]
+
+    result = subprocess.run(
+        cmd,
+        cwd=TESTS_DIR.parent,
+        check=False,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+    )
+    if result.returncode != 0:
+        raise AssertionError(f"Command failed: {' '.join(cmd)}\nOutput:\n{result.stdout}")
+    return _normalize_output(result.stdout)
+
+
 class TestReadme(unittest.TestCase):
     def test_readme_cli_code_blocks_match_tests(self):
         readme_entries = list(_iter_readme_examples())
@@ -135,7 +162,12 @@ class TestReadme(unittest.TestCase):
         self.assertEqual(len(readme_entries), 19)
 
         for example in readme_entries:
-            with self.subTest(example_line=example.line, cli=example.cli, readme_id=example.readme_id):
+            with self.subTest(
+                example_line=example.line,
+                cli=example.cli,
+                readme_id=example.readme_id,
+                kind='output' if example.is_output else 'code',
+            ):
                 target = _normalize_cli_target(example.cli)
                 cli_file = TESTS_DIR / target
                 self.assertTrue(
@@ -144,6 +176,15 @@ class TestReadme(unittest.TestCase):
                     f"but {cli_file} does not exist",
                 )
                 if _cli_file_is_excluded(cli_file):
+                    continue
+
+                if example.is_output:
+                    expected_output = _normalize_output(example.code)
+                    self.assertEqual(
+                        _run_cli_output(example.cli, example.args),
+                        expected_output,
+                        f"README output example at line {example.line} does not match output of {example.cli}.",
+                    )
                     continue
 
                 expected_marker_targets.add(target)
@@ -181,3 +222,23 @@ class TestReadme(unittest.TestCase):
                     )
 
                 used_blocks_per_cli[target][example.readme_id] = used + 1
+
+        for cli_file in sorted(TESTS_DIR.glob('cli*.py')):
+            if _cli_file_is_excluded(cli_file):
+                continue
+
+            target = cli_file.name
+            file_block_groups = _cli_file_block_groups(cli_file)
+            if len(file_block_groups) == 1 and file_block_groups.get(None) is not None:
+                continue
+            if target not in expected_marker_targets:
+                self.fail(f"{target} has no README example marker")
+
+            used = used_blocks_per_cli.get(target, {})
+            for block_id, block_values in file_block_groups.items():
+                with self.subTest(cli=target, readme_id=block_id, scope='block_coverage'):
+                    self.assertEqual(
+                        used.get(block_id, 0),
+                        len(block_values),
+                        f"README is missing or has too many references for {target} id={block_id!r}",
+                    )

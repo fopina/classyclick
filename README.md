@@ -282,7 +282,7 @@ import click
 
 import classyclick
 
-from .cli_hello import Hello
+from cli_hello import Hello
 
 
 @classyclick.command()
@@ -296,18 +296,17 @@ class Bye(Hello):
 
 The command is subclassed, inheriting arguments/options (as they are dataclass fields) and any methods:
 
-<!-- example-id: tests/cli_byes.py --help -->
+<!-- example-id-output: tests/cli_bye.py --help -->
 ```
-$ ./bye.py --help
-
-Usage: bye.py [OPTIONS]
+$ ./cli_bye.py --help
+Usage: cli_bye.py [OPTIONS]
 
   Simple program that says bye to NAME for a total of COUNT times.
 
 Options:
-  --name TEXT          The person to greet.
-  -c, --count INTEGER  Number of greetings.
-  --help               Show this message and exit.
+  --name TEXT      The person to greet.
+  --count INTEGER  Number of greetings.
+  --help           Show this message and exit.
 ```
 
 ### Testing

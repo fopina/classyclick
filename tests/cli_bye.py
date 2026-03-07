@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # sys.path tampering only to use dev classyclick - not usually required!
 import sys
 from pathlib import Path
@@ -9,7 +10,7 @@ import click
 
 import classyclick
 
-from .cli_hello import Hello
+from cli_hello import Hello
 
 
 @classyclick.command()
