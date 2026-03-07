@@ -80,7 +80,7 @@ Easy to have multiple parameters required to several different functions.
 
 Refactoring to classyclick:
 
-<!-- example-id: tests/cli_one.py --count=3 -->
+<!-- example-id: tests/hello.py --count=3 -->
 ```python
 import click
 import classyclick
@@ -313,7 +313,7 @@ Options:
 
 Simply use `Command.click` with `CliRunner` for the same `click.testing` experience
 
-<!-- example-id: tests/cli_one.py --name Peter -->
+<!-- example-id: tests/test_hello_readme2.py --name Peter -->
 ```python
 from click.testing import CliRunner
 # Hello being the example above that reverses name
@@ -330,12 +330,12 @@ But you can also unit test specific methods of a command, skipping `CliRunner`.
 
 This might help reducing required test setup as you don't need to control complex code paths from entrypoint of the CLI command.
 
-<!-- example-id: tests/cli_one.py --name Peter -->
+<!-- example-id: tests/test_hello_readme.py --name Peter -->
 ```python
 from hello import Hello
 
 def test_hello_world():
-# for the example above that reverses the name
-o = Hello('hello', 1)
-assert o.reversed_name == 'olleh'
+    # for the example above that reverses the name
+    o = Hello('hello', 1)
+    assert o.reversed_name == 'olleh'
 ```
