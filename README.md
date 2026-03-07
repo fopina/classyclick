@@ -80,7 +80,7 @@ Easy to have multiple parameters required to several different functions.
 
 Refactoring to classyclick:
 
-<!-- example-id: tests/hello.py --count=3 -->
+<!-- example-id: tests/cli_hello.py --count=3 -->
 ```python
 import click
 import classyclick
@@ -193,7 +193,7 @@ Similar to `classyclick.Option`, this is mostly wrapping [@click.argument](https
 Argument name is inferred from the field name and, same as `classyclick.Option`, type from field.type.  
 Again, type can be overriden, however not argument name as it has to match the property. For display purposes, you can use `metavar=`.
 
-<!-- example-id: tests/cli_four.py 3 -->
+<!-- example-id: tests/cli_next.py 3 -->
 ```python
 @classyclick.command()
 class Next:
@@ -223,7 +223,7 @@ $ ./cli_four.py 5
 
 Like [@click.pass_context](https://click.palletsprojects.com/en/stable/api/#click.pass_context), this exposes `click.Context` in a command property.
 
-<!-- example-id: tests/cli_four.py 3 -->
+<!-- example-id: tests/cli_next_ctx.py 3 -->
 ```python
 @classyclick.command()
 class Next:
@@ -240,7 +240,7 @@ class Next:
 
 Like [@click.pass_obj](https://click.palletsprojects.com/en/stable/api/#click.pass_obj), this assigns `click.Context.obj` to a command property, when you only want the user data rather than the whole context.
 
-<!-- example-id: tests/cli_four.py 3 -->
+<!-- example-id: tests/cli_next_ctx_obj.py 3 -->
 ```python
 @classyclick.command()
 class Next:
@@ -257,7 +257,7 @@ class Next:
 
 Like [@click.pass_meta_key](https://click.palletsprojects.com/en/stable/api/#click.decorators.pass_meta_key), this assigns `click.Context.meta[KEY]` to a command property, without handling the whole context.
 
-<!-- example-id: tests/cli_four.py 3 -->
+<!-- example-id: tests/cli_next_ctx_meta.py 3 -->
 ```python
 @classyclick.command()
 class Next:
@@ -276,10 +276,13 @@ You can compose commands together as the wrapped class is just a `dataclass`.
 
 As example, if we wanted a `Bye` command just like the `Hello` example above, but with a small change, we can subclass `Hello`
 
-<!-- example-id: tests/cli_three.py --count=1 -->
+<!-- example-id: tests/cli_bye.py --count=1 -->
 ```python
 import click
+
 import classyclick
+
+from .cli_hello import Hello
 
 
 @classyclick.command()
@@ -288,12 +291,12 @@ class Bye(Hello):
 
     def greet(self):
         for _ in range(self.count):
-            click.echo(f"Bye, {self.reversed_name}!")
+            click.echo(f'Bye, {self.reversed_name}!')
 ```
 
 The command is subclassed, inheriting arguments/options (as they are dataclass fields) and any methods:
 
-<!-- example-id: tests/cli_three.py --help -->
+<!-- example-id: tests/cli_byes.py --help -->
 ```
 $ ./bye.py --help
 
@@ -316,14 +319,16 @@ Simply use `Command.click` with `CliRunner` for the same `click.testing` experie
 <!-- example-id: tests/test_hello_readme2.py --name Peter -->
 ```python
 from click.testing import CliRunner
+
 # Hello being the example above that reverses name
 from hello import Hello
 
+
 def test_hello_world():
-  runner = CliRunner()
-  result = runner.invoke(Hello.click, ['--name', 'Peter'])
-  assert result.exit_code == 0
-  assert result.output == 'Hello reteP!\n'
+    runner = CliRunner()
+    result = runner.invoke(Hello.click, ['--name', 'Peter'])
+    assert result.exit_code == 0
+    assert result.output == 'Hello reteP!\n'
 ```
 
 But you can also unit test specific methods of a command, skipping `CliRunner`.
@@ -333,6 +338,7 @@ This might help reducing required test setup as you don't need to control comple
 <!-- example-id: tests/test_hello_readme.py --name Peter -->
 ```python
 from hello import Hello
+
 
 def test_hello_world():
     # for the example above that reverses the name
