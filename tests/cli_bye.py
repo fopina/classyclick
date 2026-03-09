@@ -7,10 +7,9 @@ sys.path.append(str(Path(__file__).parent.parent))
 
 # README +++
 import click
+from cli_hello import Hello
 
 import classyclick
-
-from cli_hello import Hello
 
 
 @classyclick.command()

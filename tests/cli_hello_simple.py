@@ -6,6 +6,7 @@ from pathlib import Path
 sys.path.append(str(Path(__file__).parent.parent))
 # README +++
 import click
+
 import classyclick
 
 

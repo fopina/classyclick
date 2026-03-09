@@ -9,16 +9,19 @@ import click
 
 import classyclick
 
+
 # README +++
 @classyclick.command()
 class Next:
     """Output the next number."""
 
     your_number: int = classyclick.Argument()
-    step_number: int = classyclick.ContextMeta("step_number")
+    step_number: int = classyclick.ContextMeta('step_number')
 
     def __call__(self):
         click.echo(self.your_number + self.step_number)
+
+
 # README ---
 
 if __name__ == '__main__':

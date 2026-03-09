@@ -35,7 +35,7 @@ class Hello:
     output: Path = classyclick.Option()
 
     # You can still override it and mix things if you want ¯\_(ツ)_/¯
-    other_output: Any = classyclick.Option(type=str)
+    other_output: any = classyclick.Option(type=str)
     # README:type ---
 
     def __call__(self):
@@ -48,6 +48,7 @@ class Hello:
     @property
     def reversed_name(self):
         return self.name[::-1]
+
 
 if __name__ == '__main__':
     Hello.click()

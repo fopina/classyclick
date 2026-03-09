@@ -9,6 +9,7 @@ import click
 
 import classyclick
 
+
 # README +++
 @classyclick.command()
 class Next:
@@ -18,6 +19,8 @@ class Next:
 
     def __call__(self):
         click.echo(self.your_number + 1)
+
+
 # README ---
 
 if __name__ == '__main__':
