@@ -16,8 +16,10 @@ pip install classyclick
 
 ## A Simple Example
 
+<!-- example-id: tests/cli_hello_simple.py -->
 ```python
 import click
+
 import classyclick
 
 
@@ -37,9 +39,9 @@ if __name__ == '__main__':
     Hello.click()
 ```
 
+<!-- example-id-output: tests/cli_hello_simple.py --name classyclick --count=3 -->
 ```
-$ python hello.py --count=3
-Your name: classyclick
+$ ./cli_hello_simple.py --name classyclick --count=3
 Hello, classyclick!
 Hello, classyclick!
 Hello, classyclick!
@@ -53,12 +55,14 @@ Right, apart from personal aesthetics preferences, there is no reason to choose 
 
 Reason why I started to use classes for commands is that, as the command function complexity grows, we decompose it into more functions:
 
+<!-- example-id: tests/cli_click_readme.py -->
 ```python
 import click
 
+
 @click.command()
-@click.option("--count", default=1, help="Number of greetings.")
-@click.option("--name", prompt="Your name", help="The person to greet.")
+@click.option('--count', default=1, help='Number of greetings.')
+@click.option('--name', prompt='Your name', help='The person to greet.')
 def hello(count, name):
     """Simple program that greets reversed NAME for a total of COUNT times."""
     greet(count, name)
@@ -66,7 +70,8 @@ def hello(count, name):
 
 def greet(count, name):
     for _ in range(count):
-        click.echo(f"Hello, {reverse(name)}!")
+        click.echo(f'Hello, {reverse(name)}!')
+
 
 def reverse(name):
     return name[::-1]
@@ -77,8 +82,10 @@ Easy to have multiple parameters required to several different functions.
 
 Refactoring to classyclick:
 
+<!-- example-id: tests/cli_hello.py --count=3 -->
 ```python
 import click
+
 import classyclick
 
 
@@ -91,11 +98,11 @@ class Hello:
 
     def __call__(self):
         self.greet()
-    
+
     def greet(self):
         for _ in range(self.count):
-            click.echo(f"Hello, {self.reversed_name}!")
-    
+            click.echo(f'Hello, {self.reversed_name}!')
+
     @property
     def reversed_name(self):
         return self.name[::-1]
@@ -113,6 +120,7 @@ The only new keyword argument is `group`. This can be used to attach the command
 
 Re-using click examples:
 
+<!-- example-id: tests/cli_click.py --help -->
 ```
 @click.group()
 @click.option('--debug/--no-debug', default=False)
@@ -138,6 +146,7 @@ Instead of the decorator approach, this is more like [Django's models](https://d
 
 As you noticed from the example, there's no need to specify an option parameter name:
 
+<!-- example-id: tests/cli_short_samples.py:normal -->
 ```
 count: int = classyclick.Option(default=1, help='Number of greetings.')
 ```
@@ -146,34 +155,38 @@ count: int = classyclick.Option(default=1, help='Number of greetings.')
 
 To add a short version *on top of it*:
 
+<!-- example-id: tests/cli_short_samples.py:short -->
 ```
 count: int = classyclick.Option('-c', default=1, help='Number of greetings.')
 ```
 
 And to only include the short, you can use the only keyword argument that is not forwarded to [@click.option](https://click.palletsprojects.com/en/stable/api/#click.option): `default_parameter`
 
+<!-- example-id: tests/cli_short_samples.py:defaultparam -->
 ```
 count: int = classyclick.Option('-c', default_parameter=False, default=1, help='Number of greetings.')
 ```
 
 `classyclick.Option` also infers **type** from type hints, then passed to `click.option`.
 
+<!-- example-id: tests/cli_short_samples.py:type -->
 ```python
-# The resulting click.option will use type=Path
-output: Path = classyclick.Option()
+    # The resulting click.option will use type=Path
+    output: Path = classyclick.Option()
 
-# You can still override it and mix things if you want ¯\_(ツ)_/¯
-other_output: Any = classyclick.Option(type=str)
+    # You can still override it and mix things if you want ¯\_(ツ)_/¯
+    other_output: any = classyclick.Option(type=str)
 ```
 
 When type is `bool`, it will set `is_flag=True` as well. If for some reason you don't want that, it can still be overriden.
 
+<!-- example-id: tests/cli_short_samples.py:bool -->
 ```python
-# This results in click.option('--verbose', type=bool, is_flag=True)
-verbose: bool = classyclick.Option()
+    # This results in click.option('--verbose', type=bool, is_flag=True)
+    verbose: bool = classyclick.Option()
 
-# As mentioned, it can always be overriden if you need the weird behavior of a non-flag bool option...
-weird: bool = classyclick.Option(is_flag=False)
+    # As mentioned, it can always be overriden if you need the weird behavior of a non-flag bool option...
+    weird: bool = classyclick.Option(is_flag=False)
 ```
 
 ### classyclick.Argument
@@ -183,6 +196,7 @@ Similar to `classyclick.Option`, this is mostly wrapping [@click.argument](https
 Argument name is inferred from the field name and, same as `classyclick.Option`, type from field.type.  
 Again, type can be overriden, however not argument name as it has to match the property. For display purposes, you can use `metavar=`.
 
+<!-- example-id: tests/cli_next.py 3 -->
 ```python
 @classyclick.command()
 class Next:
@@ -194,15 +208,19 @@ class Next:
         click.echo(self.your_number + 1)
 ```
 
+<!-- example-id-output: tests/cli_next.py --help -->
 ```
-$ ./cli_four.py --help
-Usage: cli_four.py [OPTIONS] YOUR_NUMBER
+$ ./cli_next.py --help
+Usage: cli_next.py [OPTIONS] YOUR_NUMBER
 
   Output the next number.
 
 Options:
   --help  Show this message and exit.
+```
 
+<!-- example-id-output: tests/cli_next.py 5 -->
+```
 $ ./cli_four.py 5     
 6
 ```
@@ -211,6 +229,7 @@ $ ./cli_four.py 5
 
 Like [@click.pass_context](https://click.palletsprojects.com/en/stable/api/#click.pass_context), this exposes `click.Context` in a command property.
 
+<!-- example-id: tests/cli_next_ctx.py 3 -->
 ```python
 @classyclick.command()
 class Next:
@@ -227,6 +246,7 @@ class Next:
 
 Like [@click.pass_obj](https://click.palletsprojects.com/en/stable/api/#click.pass_obj), this assigns `click.Context.obj` to a command property, when you only want the user data rather than the whole context.
 
+<!-- example-id: tests/cli_next_ctx_obj.py 3 -->
 ```python
 @classyclick.command()
 class Next:
@@ -243,13 +263,14 @@ class Next:
 
 Like [@click.pass_meta_key](https://click.palletsprojects.com/en/stable/api/#click.decorators.pass_meta_key), this assigns `click.Context.meta[KEY]` to a command property, without handling the whole context.
 
+<!-- example-id: tests/cli_next_ctx_meta.py 3 -->
 ```python
 @classyclick.command()
 class Next:
     """Output the next number."""
 
     your_number: int = classyclick.Argument()
-    step_number: int = classyclick.ContextMeta("step_number")
+    step_number: int = classyclick.ContextMeta('step_number')
 
     def __call__(self):
         click.echo(self.your_number + self.step_number)
@@ -261,8 +282,11 @@ You can compose commands together as the wrapped class is just a `dataclass`.
 
 As example, if we wanted a `Bye` command just like the `Hello` example above, but with a small change, we can subclass `Hello`
 
+<!-- example-id: tests/cli_bye.py --count=1 -->
 ```python
 import click
+from cli_hello import Hello
+
 import classyclick
 
 
@@ -272,22 +296,22 @@ class Bye(Hello):
 
     def greet(self):
         for _ in range(self.count):
-            click.echo(f"Bye, {self.reversed_name}!")
+            click.echo(f'Bye, {self.reversed_name}!')
 ```
 
 The command is subclassed, inheriting arguments/options (as they are dataclass fields) and any methods:
 
+<!-- example-id-output: tests/cli_bye.py --help -->
 ```
-$ ./bye.py --help
-
-Usage: bye.py [OPTIONS]
+$ ./cli_bye.py --help
+Usage: cli_bye.py [OPTIONS]
 
   Simple program that says bye to NAME for a total of COUNT times.
 
 Options:
-  --name TEXT          The person to greet.
-  -c, --count INTEGER  Number of greetings.
-  --help               Show this message and exit.
+  --name TEXT      The person to greet.
+  --count INTEGER  Number of greetings.
+  --help           Show this message and exit.
 ```
 
 ### Testing
@@ -296,27 +320,32 @@ Options:
 
 Simply use `Command.click` with `CliRunner` for the same `click.testing` experience
 
+<!-- example-id: tests/test_hello_readme2.py --name Peter -->
 ```python
 from click.testing import CliRunner
+
 # Hello being the example above that reverses name
-from hello import Hello
+from .cli_hello import Hello
+
 
 def test_hello_world():
-  runner = CliRunner()
-  result = runner.invoke(Hello.click, ['--name', 'Peter'])
-  assert result.exit_code == 0
-  assert result.output == 'Hello reteP!\n'
+    runner = CliRunner()
+    result = runner.invoke(Hello.click, ['--name', 'Peter'])
+    assert result.exit_code == 0
+    assert result.output == 'Hello, reteP!\n'
 ```
 
 But you can also unit test specific methods of a command, skipping `CliRunner`.
 
 This might help reducing required test setup as you don't need to control complex code paths from entrypoint of the CLI command.
 
+<!-- example-id: tests/test_hello_readme.py --name Peter -->
 ```python
-from hello import Hello
+from .cli_hello import Hello
+
 
 def test_hello_world():
-# for the example above that reverses the name
-o = Hello('hello', 1)
-assert o.reversed_name == 'olleh'
+    # for the example above that reverses the name
+    o = Hello('hello', 1)
+    assert o.reversed_name == 'olleh'
 ```

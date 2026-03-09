@@ -4,7 +4,7 @@ import sys
 from pathlib import Path
 
 sys.path.append(str(Path(__file__).parent.parent))
-
+# README +++
 import click
 
 import classyclick
@@ -12,10 +12,10 @@ import classyclick
 
 @classyclick.command()
 class Hello:
-    """Simple program that DOES NOT greet NAME for a total of COUNT times BECAUSE OF MISSING TYPES."""
+    """Simple program that greets NAME for a total of COUNT times."""
 
-    name = classyclick.Option(prompt='Your name', help='The person to greet.')
-    count = classyclick.Option('-c', type=int, default=1, help='Number of greetings.')
+    name: str = classyclick.Option(prompt='Your name', help='The person to greet.')
+    count: int = classyclick.Option(default=1, help='Number of greetings.')
 
     def __call__(self):
         for _ in range(self.count):
@@ -24,3 +24,4 @@ class Hello:
 
 if __name__ == '__main__':
     Hello.click()
+# README ---

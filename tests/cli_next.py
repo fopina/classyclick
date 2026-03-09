@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # sys.path tampering only to use dev classyclick - not usually required!
 import sys
 from pathlib import Path
@@ -9,6 +10,7 @@ import click
 import classyclick
 
 
+# README +++
 @classyclick.command()
 class Next:
     """Output the next number."""
@@ -18,6 +20,8 @@ class Next:
     def __call__(self):
         click.echo(self.your_number + 1)
 
+
+# README ---
 
 if __name__ == '__main__':
     Next.click()
