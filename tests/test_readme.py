@@ -156,10 +156,11 @@ def _run_cli_output(cli_target: str, args: list[str]) -> str:
 
 class TestReadme(unittest.TestCase):
     def test_readme_cli_code_blocks_match_tests(self):
+        self.maxDiff = None
         readme_entries = list(_iter_readme_examples())
         expected_marker_targets = set()
         used_blocks_per_cli: dict[str, dict[Optional[str], int]] = {}
-        self.assertEqual(len(readme_entries), 19)
+        self.assertEqual(len(readme_entries), 20)
 
         for example in readme_entries:
             with self.subTest(

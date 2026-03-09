@@ -16,7 +16,7 @@ pip install classyclick
 
 ## A Simple Example
 
-<!-- example-id: tests/cli_one.py --help -->
+<!-- example-id: tests/cli_hello_simple.py -->
 ```python
 import click
 import classyclick
@@ -38,10 +38,9 @@ if __name__ == '__main__':
     Hello.click()
 ```
 
-<!-- example-id: tests/cli_one.py --count=3 -->
+<!-- example-id-output: tests/cli_hello_simple.py --name classyclick --count=3 -->
 ```
-$ python hello.py --count=3
-Your name: classyclick
+$ ./cli_hello_simple.py --name classyclick --count=3
 Hello, classyclick!
 Hello, classyclick!
 Hello, classyclick!
@@ -55,7 +54,7 @@ Right, apart from personal aesthetics preferences, there is no reason to choose 
 
 Reason why I started to use classes for commands is that, as the command function complexity grows, we decompose it into more functions:
 
-<!-- example-id: tests/cli_click.py --help -->
+<!-- example-id: tests/cli_click_readme.py -->
 ```python
 import click
 
@@ -83,6 +82,7 @@ Refactoring to classyclick:
 <!-- example-id: tests/cli_hello.py --count=3 -->
 ```python
 import click
+
 import classyclick
 
 
@@ -95,11 +95,11 @@ class Hello:
 
     def __call__(self):
         self.greet()
-    
+
     def greet(self):
         for _ in range(self.count):
-            click.echo(f"Hello, {self.reversed_name}!")
-    
+            click.echo(f'Hello, {self.reversed_name}!')
+
     @property
     def reversed_name(self):
         return self.name[::-1]
@@ -143,7 +143,7 @@ Instead of the decorator approach, this is more like [Django's models](https://d
 
 As you noticed from the example, there's no need to specify an option parameter name:
 
-<!-- example-id: tests/cli_one.py --count=1 -->
+<!-- example-id: tests/cli_short_samples.py:normal -->
 ```
 count: int = classyclick.Option(default=1, help='Number of greetings.')
 ```
@@ -152,38 +152,38 @@ count: int = classyclick.Option(default=1, help='Number of greetings.')
 
 To add a short version *on top of it*:
 
-<!-- example-id: tests/cli_one.py -c 1 -->
+<!-- example-id: tests/cli_short_samples.py:short -->
 ```
 count: int = classyclick.Option('-c', default=1, help='Number of greetings.')
 ```
 
 And to only include the short, you can use the only keyword argument that is not forwarded to [@click.option](https://click.palletsprojects.com/en/stable/api/#click.option): `default_parameter`
 
-<!-- example-id: tests/cli_one.py -c 1 --count=1 -->
+<!-- example-id: tests/cli_short_samples.py:defaultparam -->
 ```
 count: int = classyclick.Option('-c', default_parameter=False, default=1, help='Number of greetings.')
 ```
 
 `classyclick.Option` also infers **type** from type hints, then passed to `click.option`.
 
-<!-- example-id: tests/cli_one.py --count=1 -->
+<!-- example-id: tests/cli_short_samples.py:type -->
 ```python
-# The resulting click.option will use type=Path
-output: Path = classyclick.Option()
+    # The resulting click.option will use type=Path
+    output: Path = classyclick.Option()
 
-# You can still override it and mix things if you want ¯\_(ツ)_/¯
-other_output: Any = classyclick.Option(type=str)
+    # You can still override it and mix things if you want ¯\_(ツ)_/¯
+    other_output: Any = classyclick.Option(type=str)
 ```
 
 When type is `bool`, it will set `is_flag=True` as well. If for some reason you don't want that, it can still be overriden.
 
-<!-- example-id: tests/cli_one.py --help -->
+<!-- example-id: tests/cli_short_samples.py:bool -->
 ```python
-# This results in click.option('--verbose', type=bool, is_flag=True)
-verbose: bool = classyclick.Option()
+    # This results in click.option('--verbose', type=bool, is_flag=True)
+    verbose: bool = classyclick.Option()
 
-# As mentioned, it can always be overriden if you need the weird behavior of a non-flag bool option...
-weird: bool = classyclick.Option(is_flag=False)
+    # As mentioned, it can always be overriden if you need the weird behavior of a non-flag bool option...
+    weird: bool = classyclick.Option(is_flag=False)
 ```
 
 ### classyclick.Argument
@@ -205,16 +205,19 @@ class Next:
         click.echo(self.your_number + 1)
 ```
 
-<!-- example-id: tests/cli_four.py --help -->
+<!-- example-id-output: tests/cli_next.py --help -->
 ```
-$ ./cli_four.py --help
-Usage: cli_four.py [OPTIONS] YOUR_NUMBER
+$ ./cli_next.py --help
+Usage: cli_next.py [OPTIONS] YOUR_NUMBER
 
   Output the next number.
 
 Options:
   --help  Show this message and exit.
+```
 
+<!-- example-id-output: tests/cli_next.py 5 -->
+```
 $ ./cli_four.py 5     
 6
 ```

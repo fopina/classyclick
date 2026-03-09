@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """cli not with classy but with click, to verify some behaviors"""
 
 import click
