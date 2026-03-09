@@ -21,6 +21,20 @@ class Test(TestCase):
         self.assertEqual(result.returncode, 0)
         self.assertIn('Hello, kcilcyssalc!', result.stdout)
 
+    def test_hello_class(self):
+        from ..cli_hello import Hello
+
+        self.assertEqual(Hello(name='classyclick').reversed_name, 'kcilcyssalc')
+
+    def test_hello_no_types(self):
+        def _a():
+            from ..cli_two import Hello
+
+            # no-op until "ruff format" gets pragma support (like # fmt: off)
+            Hello.click()
+
+        self.assertRaisesRegex(TypeError, "tests.cli_two.Hello is missing type for classy field 'name'", _a)
+
     def test_bye(self):
         result = self._run_cli('cli_bye.py', ['--name', 'classyclick'])
         self.assertEqual(result.returncode, 0)
