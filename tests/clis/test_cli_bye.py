@@ -1,5 +1,10 @@
-from pathlib import Path
+from . import CliTestCase, load_cli_script
 
 
-def test_cli_bye_file_exists():
-    assert (Path(__file__).resolve().parents[1] / 'cli_bye.py').is_file()
+class Test(CliTestCase):
+    def test_cli_bye(self):
+        module = load_cli_script('cli_bye.py')
+
+        result = self.invoker(module.Bye.click, ['--name', 'classyclick'])
+
+        self.assertEqual(result.output, 'Bye, kcilcyssalc!\n')

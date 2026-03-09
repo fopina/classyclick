@@ -39,6 +39,7 @@
 ## Testing expectations
 
 - Test framework: `pytest` with `unittest.TestCase` patterns.
+- Always write new tests using `unittest.TestCase` / `tests.BaseCase`; avoid bare pytest-style test functions.
 - CLI behavior is typically validated with `click.testing.CliRunner` through `*.click`.
 - Add tests for behavior changes and regressions (especially around default/required inference and click-version-sensitive behavior).
 - Keep click-version compatibility in mind (`click==7.0` and `click > 8` are explicitly exercised in CI).

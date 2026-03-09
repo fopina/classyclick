@@ -1,5 +1,10 @@
-from pathlib import Path
+from . import CliTestCase, load_cli_script
 
 
-def test_cli_next_file_exists():
-    assert (Path(__file__).resolve().parents[1] / 'cli_next.py').is_file()
+class Test(CliTestCase):
+    def test_cli_next(self):
+        module = load_cli_script('cli_next.py')
+
+        result = self.invoker(module.Next.click, ['3'])
+
+        self.assertEqual(result.output, '4\n')

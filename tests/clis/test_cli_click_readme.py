@@ -1,5 +1,10 @@
-from pathlib import Path
+from . import CliTestCase, load_cli_script
 
 
-def test_cli_click_readme_file_exists():
-    assert (Path(__file__).resolve().parents[1] / 'cli_click_readme.py').is_file()
+class Test(CliTestCase):
+    def test_cli_click_readme(self):
+        module = load_cli_script('cli_click_readme.py')
+
+        result = self.invoker(module.hello, ['--name', 'classyclick', '--count', '2'])
+
+        self.assertEqual(result.output, 'Hello, kcilcyssalc!\nHello, kcilcyssalc!\n')
