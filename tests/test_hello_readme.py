@@ -1,4 +1,4 @@
-from hello import Hello
+from .cli_hello import Hello
 
 
 def test_hello_world():
