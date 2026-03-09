@@ -1,3 +1,5 @@
+import warnings
+
 import click
 from click.testing import CliRunner
 
@@ -17,16 +19,30 @@ class Test(BaseCase):
             ctx.obj = dict(country=country)
             ctx.meta['country'] = country
 
-        @classyclick.command(group=cli)
-        class Hello:
-            name: str = classyclick.argument()
-            age: int = classyclick.option(required=True, help='Age')
-            country: str = classyclick.context_meta('country')
-            obj: any = classyclick.context_obj()
-            ctx: any = classyclick.context()
+        with warnings.catch_warnings(record=True) as caught:
+            warnings.simplefilter('always', DeprecationWarning)
 
-            def __call__(self):
-                print(f'Hello, {self.name} from {self.country}, you will be {self.age + 1} next year')
+            @classyclick.command(group=cli)
+            class Hello:
+                name: str = classyclick.argument()
+                age: int = classyclick.option(required=True, help='Age')
+                country: str = classyclick.context_meta('country')
+                obj: any = classyclick.context_obj()
+                ctx: any = classyclick.context()
+
+                def __call__(self):
+                    print(f'Hello, {self.name} from {self.country}, you will be {self.age + 1} next year')
+
+        self.assertEqual(
+            [str(warning.message) for warning in caught],
+            [
+                'use Argument instead',
+                'use Option instead',
+                'use ContextMeta instead',
+                'use ContextObj instead',
+                'use Context instead',
+            ],
+        )
 
         runner = CliRunner()
         result = runner.invoke(cli, ['hello', 'Peter', '--age', '10'])
