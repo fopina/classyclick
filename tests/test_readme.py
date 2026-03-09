@@ -149,7 +149,29 @@ def _run_cli_output(cli_target: str, args: list[str]) -> str:
     return _normalize_output(result.stdout)
 
 
+def _expected_clis_test_path(cli_target: str) -> Path:
+    target = _normalize_cli_target(cli_target)
+    target_stem = Path(target).with_suffix('').name
+    return TESTS_DIR / 'clis' / f'test_{target_stem}.py'
+
+
 class TestReadme(unittest.TestCase):
+    def test_readme_example_targets_have_clis_tests(self):
+        self.maxDiff = None
+        seen = set()
+
+        for example in _iter_readme_examples():
+            if example.cli in seen:
+                continue
+            seen.add(example.cli)
+
+            with self.subTest(example_line=example.line, cli=example.cli):
+                test_file = _expected_clis_test_path(example.cli)
+                self.assertTrue(
+                    test_file.exists(),
+                    f'example target {example.cli} should have a test file at {test_file} for README coverage',
+                )
+
     def test_readme_cli_code_blocks_match_tests(self):
         self.maxDiff = None
         readme_entries = list(_iter_readme_examples())
