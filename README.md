@@ -19,6 +19,7 @@ pip install classyclick
 <!-- example-id: tests/cli_hello_simple.py -->
 ```python
 import click
+
 import classyclick
 
 
@@ -58,9 +59,10 @@ Reason why I started to use classes for commands is that, as the command functio
 ```python
 import click
 
+
 @click.command()
-@click.option("--count", default=1, help="Number of greetings.")
-@click.option("--name", prompt="Your name", help="The person to greet.")
+@click.option('--count', default=1, help='Number of greetings.')
+@click.option('--name', prompt='Your name', help='The person to greet.')
 def hello(count, name):
     """Simple program that greets reversed NAME for a total of COUNT times."""
     greet(count, name)
@@ -68,7 +70,8 @@ def hello(count, name):
 
 def greet(count, name):
     for _ in range(count):
-        click.echo(f"Hello, {reverse(name)}!")
+        click.echo(f'Hello, {reverse(name)}!')
+
 
 def reverse(name):
     return name[::-1]
@@ -172,7 +175,7 @@ count: int = classyclick.Option('-c', default_parameter=False, default=1, help='
     output: Path = classyclick.Option()
 
     # You can still override it and mix things if you want ¯\_(ツ)_/¯
-    other_output: Any = classyclick.Option(type=str)
+    other_output: any = classyclick.Option(type=str)
 ```
 
 When type is `bool`, it will set `is_flag=True` as well. If for some reason you don't want that, it can still be overriden.
@@ -267,7 +270,7 @@ class Next:
     """Output the next number."""
 
     your_number: int = classyclick.Argument()
-    step_number: int = classyclick.ContextMeta("step_number")
+    step_number: int = classyclick.ContextMeta('step_number')
 
     def __call__(self):
         click.echo(self.your_number + self.step_number)
@@ -282,10 +285,9 @@ As example, if we wanted a `Bye` command just like the `Hello` example above, bu
 <!-- example-id: tests/cli_bye.py --count=1 -->
 ```python
 import click
+from cli_hello import Hello
 
 import classyclick
-
-from cli_hello import Hello
 
 
 @classyclick.command()
@@ -323,14 +325,14 @@ Simply use `Command.click` with `CliRunner` for the same `click.testing` experie
 from click.testing import CliRunner
 
 # Hello being the example above that reverses name
-from hello import Hello
+from .cli_hello import Hello
 
 
 def test_hello_world():
     runner = CliRunner()
     result = runner.invoke(Hello.click, ['--name', 'Peter'])
     assert result.exit_code == 0
-    assert result.output == 'Hello reteP!\n'
+    assert result.output == 'Hello, reteP!\n'
 ```
 
 But you can also unit test specific methods of a command, skipping `CliRunner`.
@@ -339,7 +341,7 @@ This might help reducing required test setup as you don't need to control comple
 
 <!-- example-id: tests/test_hello_readme.py --name Peter -->
 ```python
-from hello import Hello
+from .cli_hello import Hello
 
 
 def test_hello_world():
