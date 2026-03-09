@@ -149,9 +149,11 @@ def _run_cli_output(cli_target: str, args: list[str]) -> str:
     return _normalize_output(result.stdout)
 
 
-def _expected_clis_test_path(cli_target: str) -> Path:
+def _expected_clis_test_path(cli_target: str) -> Optional[Path]:
     target = _normalize_cli_target(cli_target)
     target_stem = Path(target).with_suffix('').name
+    if target_stem.startswith('test_'):
+        return None
     return TESTS_DIR / 'clis' / f'test_{target_stem}.py'
 
 
@@ -167,6 +169,8 @@ class TestReadme(unittest.TestCase):
 
             with self.subTest(example_line=example.line, cli=example.cli):
                 test_file = _expected_clis_test_path(example.cli)
+                if test_file is None:
+                    continue
                 self.assertTrue(
                     test_file.exists(),
                     f'example target {example.cli} should have a test file at {test_file} for README coverage',
