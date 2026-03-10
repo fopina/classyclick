@@ -76,12 +76,12 @@ class Command:
     """Base class for class-based click commands."""
 
     class Config:
-        name = None
-        help = None
-        group = None
+        name: str | None
+        help: str | None
+        group: click.Group | None
 
-        def __init__(self, **kwargs):
-            self.__dict__.update(kwargs)
+        def __init__(self, *, name=None, help=None, group=None, **kwargs):
+            self.__dict__.update(name=name, help=help, group=group, **kwargs)
 
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
