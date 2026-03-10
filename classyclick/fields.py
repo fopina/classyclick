@@ -6,7 +6,6 @@ from typing import TYPE_CHECKING, Any, get_args, get_origin
 from typing_extensions import deprecated
 
 if TYPE_CHECKING:
-    import click
     from click import Command
 
 from . import utils

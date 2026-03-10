@@ -1,7 +1,8 @@
 from dataclasses import dataclass, fields
-from typing import Callable, Protocol, TypeVar, Union, dataclass_transform
+from typing import TYPE_CHECKING, Any, Callable, Protocol, TypeVar, Union, dataclass_transform
 
-import click
+if TYPE_CHECKING:
+    import click
 
 from . import utils
 from .fields import Argument, Context, ContextMeta, ContextObj, Option, _Field
@@ -18,9 +19,15 @@ class Clickable(Protocol):
     """
 
 
+def _get_click():
+    import click
+
+    return click
+
+
 def command(cls=None, *, group=None, **click_kwargs) -> Callable[[T], Union[T, Clickable]]:
     if group is None:
-        group = click
+        group = _get_click()
 
     def _wrapper(kls: T) -> Union[T, Clickable]:
         if not hasattr(kls, '__bases__'):
@@ -78,7 +85,7 @@ class Command:
     class Config:
         name: str | None
         help: str | None
-        group: click.Group | None
+        group: 'Any | None'
 
         def __init__(self, *, name=None, help=None, group=None, **kwargs):
             self.__dict__.update(name=name, help=help, group=group, **kwargs)
@@ -121,8 +128,8 @@ class Command:
                 if key and key not in click_kwargs:
                     click_kwargs[key] = value
 
-        group = click_kwargs.pop('group', click)
+        group = click_kwargs.pop('group', None)
         if group is None:
-            group = click
+            group = _get_click()
         cls.__command__ = group.command(**click_kwargs)(func)
         cls.click = cls.__command__
