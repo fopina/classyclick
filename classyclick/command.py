@@ -75,6 +75,14 @@ def _strictly_typed_dataclass(kls):
 class Command:
     """Base class for class-based click commands."""
 
+    class Config:
+        name = None
+        help = None
+        group = None
+
+        def __init__(self, **kwargs):
+            self.__dict__.update(kwargs)
+
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
 
@@ -103,13 +111,18 @@ class Command:
                 func = field(func)
 
         click_kwargs = {}
+        config = getattr(cls, '__config__', None)
+        if isinstance(config, Command.Config):
+            click_kwargs.update(vars(config))
 
         for name, value in cls.__dict__.items():
             if name.startswith('__click_') and name.endswith('__'):
                 key = name[len('__click_') : -2]
-                if key:
+                if key and key not in click_kwargs:
                     click_kwargs[key] = value
 
         group = click_kwargs.pop('group', click)
+        if group is None:
+            group = click
         cls.__command__ = group.command(**click_kwargs)(func)
         cls.click = cls.__command__

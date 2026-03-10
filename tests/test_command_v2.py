@@ -136,8 +136,7 @@ Options:
         class Hello(classyclick.Command):
             """test command"""
 
-            __click_help__ = 'override pydocs'
-            __click_name__ = 'hello-there'
+            __config__ = classyclick.Command.Config(help='override pydocs', name='hello-there')
 
             name: str = classyclick.Argument()
             age: int = classyclick.Option(default=10)
@@ -166,7 +165,7 @@ Options:
         class Hello(classyclick.Command):
             """test command"""
 
-            __click_group__ = cli
+            __config__ = classyclick.Command.Config(group=cli)
 
             name: str = classyclick.Argument()
             age: int = classyclick.Option(default=10)
@@ -196,5 +195,31 @@ Commands:
 Usage: cli hello [OPTIONS] NAME
 
   test command
+""",
+        )
+
+    def test_config_supports_click_kwargs(self):
+        class Hello(classyclick.Command):
+            """test command"""
+
+            __config__ = classyclick.Command.Config(name='hello-there', help='override')
+
+            name: str = classyclick.Argument()
+            age: int = classyclick.Option(default=10)
+
+            def __call__(self): ...
+
+        result = self.runner.invoke(Hello.click, args=['--help'])
+        self.assertEqual(result.exit_code, 0)
+        self.assertEqual(
+            result.output,
+            """\
+Usage: hello-there [OPTIONS] NAME
+
+  override
+
+Options:
+  --age INTEGER
+  --help         Show this message and exit.
 """,
         )
