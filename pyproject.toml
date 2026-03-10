@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=61.0.0,<69.3.0", "typing-extensions>=4.12.2"]
+requires = ["setuptools>=61.0.0,<69.3.0", "typing-extensions>=4.12.2", "click"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -22,7 +22,8 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
 ]
-dependencies = ["click>=7", "typing-extensions>=4.12.2"]
+# typing-extensions for deprecated (< 3.13) and dataclass_transform (< 3.11)
+dependencies = ["click>=7", "typing-extensions>=4.12.2; python_version < '3.13'"]
 
 [dependency-groups]
 dev = [

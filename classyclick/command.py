@@ -1,11 +1,15 @@
 from dataclasses import dataclass, fields
-from typing import TYPE_CHECKING, Callable, Protocol, TypeVar, Union
+from typing import Callable, Protocol, TypeVar, Union
 
-if TYPE_CHECKING:
-    from click import Command
+try:
+    from typing import dataclass_transform
+except ImportError:
+    from typing_extensions import dataclass_transform
+
+import click
 
 from . import utils
-from .fields import _Field
+from .fields import Argument, Context, ContextMeta, ContextObj, Option, _Field
 
 T = TypeVar('T')
 
@@ -13,7 +17,7 @@ T = TypeVar('T')
 class Clickable(Protocol):
     """to merge with wrapped classed for type hints"""
 
-    click: 'Command'
+    click: 'click.Command'
     """
     Run click command
     """
@@ -21,9 +25,6 @@ class Clickable(Protocol):
 
 def command(cls=None, *, group=None, **click_kwargs) -> Callable[[T], Union[T, Clickable]]:
     if group is None:
-        # delay import until required
-        import click
-
         group = click
 
     def _wrapper(kls: T) -> Union[T, Clickable]:
@@ -73,3 +74,56 @@ def _strictly_typed_dataclass(kls):
         if name not in annotations and isinstance(val, _Field):
             raise TypeError(f"{kls.__module__}.{kls.__qualname__} is missing type for classy field '{name}'")
     return dataclass(kls)
+
+
+@dataclass_transform(field_specifiers=(Option, Argument, Context, ContextObj, ContextMeta))
+class Command:
+    """Base class for class-based click commands."""
+
+    class Config:
+        def __init__(self, *, name: str = None, help: str = None, group: 'click.Group' = None, **kwargs):
+            self.__dict__.update(name=name, help=help, group=group, **kwargs)
+
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
+
+        if cls is Command:
+            return
+
+        cls._build_click_command()
+
+    @classmethod
+    def _build_click_command(cls):
+        _strictly_typed_dataclass(cls)
+
+        def func(*args, **kwargs):
+            if args:
+                args = list(args)
+                ctx = getattr(func, '__classy_context__', [])
+                for field_name in ctx:
+                    kwargs[field_name] = args.pop()
+            cls(*args, **kwargs)()
+
+        func.__doc__ = cls.__doc__
+        func.__name__ = utils.camel_snake(cls.__name__)
+
+        for field in fields(cls)[::-1]:
+            if isinstance(field, _Field):
+                func = field(func)
+
+        click_kwargs = {}
+        config = getattr(cls, '__config__', None)
+        if isinstance(config, Command.Config):
+            click_kwargs.update(vars(config))
+
+        for name, value in cls.__dict__.items():
+            if name.startswith('__click_') and name.endswith('__'):
+                key = name[len('__click_') : -2]
+                if key and key not in click_kwargs:
+                    click_kwargs[key] = value
+
+        group = click_kwargs.pop('group', None)
+        if group is None:
+            group = click
+        cls.__command__ = group.command(**click_kwargs)(func)
+        cls.click = cls.__command__

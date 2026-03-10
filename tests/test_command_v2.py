@@ -9,27 +9,16 @@ class Test(BaseCase):
     def setUp(self):
         self.runner = CliRunner()
 
-    def test_error(self):
-        def not_a_class():
-            @classyclick.command()
-            def hello():
-                pass
-
-        self.assertRaisesRegex(ValueError, 'hello is not a class', not_a_class)
-
     def test_command_default_name(self):
-        @classyclick.command()
-        class Hello: ...
+        class Hello(classyclick.Command): ...
 
         self.assertEqual(Hello.click.name, 'hello')
 
-        @classyclick.command()
-        class HelloThere: ...
+        class HelloThere(classyclick.Command): ...
 
         self.assertEqual(HelloThere.click.name, 'hello-there')
 
-        @classyclick.command()
-        class HelloThereCommand: ...
+        class HelloThereCommand(classyclick.Command): ...
 
         if self.click_version < (8, 2):
             self.assertEqual(HelloThereCommand.click.name, 'hello-there-command')
@@ -37,8 +26,7 @@ class Test(BaseCase):
             self.assertEqual(HelloThereCommand.click.name, 'hello-there')
 
     def test_init_defaults(self):
-        @classyclick.command()
-        class Hello:
+        class Hello(classyclick.Command):
             name: str = classyclick.Argument()
             age: int = classyclick.Option(default=10)
 
@@ -58,8 +46,7 @@ class Test(BaseCase):
     def test_defaults_and_required(self):
         """https://github.com/fopina/classyclick/issues/30"""
 
-        @classyclick.command()
-        class BaseHello:
+        class BaseHello(classyclick.Command):
             age: int = classyclick.Option(default=10)
             # str Option without explicit default, means default=None - make sure dataclass also takes it as such
             name: str = classyclick.Option()
@@ -71,21 +58,25 @@ class Test(BaseCase):
         self.assertEqual(result.exit_code, 0)
         self.assertEqual(result.output, 'Hello None, gratz on being 10\n')
 
-        @classyclick.command()
         class Hello(BaseHello):
             age: int = classyclick.Option(default=10)
             # str Option without explicit default, means default=None - make sure dataclass also takes it as such
             name: str = classyclick.Argument(required=False)
 
+            def __call__(self):
+                print(f'Hello {self.name}, gratz on being {self.age}')
+
         result = self.runner.invoke(Hello.click)
         self.assertEqual(result.exit_code, 0)
         self.assertEqual(result.output, 'Hello None, gratz on being 10\n')
 
-        @classyclick.command()
         class Hello(BaseHello):
             age: int = classyclick.Option(default=10)
             # str Option without explicit default, means default=None - make sure dataclass also takes it as such
             name: str = classyclick.Argument(default='John')
+
+            def __call__(self):
+                print(f'Hello {self.name}, gratz on being {self.age}')
 
         result = self.runner.invoke(Hello.click)
         self.assertEqual(result.exit_code, 0)
@@ -96,8 +87,7 @@ class Test(BaseCase):
 
         with self.assertRaisesRegex(TypeError, "non-default argument 'name' follows default argument"):
 
-            @classyclick.command()
-            class Hello:
+            class Hello(classyclick.Command):
                 age: int = classyclick.Option(default=10)
                 name: str = classyclick.Option(required=True)
 
@@ -105,8 +95,7 @@ class Test(BaseCase):
 
         with self.assertRaisesRegex(TypeError, "non-default argument 'name' follows default argument"):
 
-            @classyclick.command()
-            class Hello:
+            class Hello(classyclick.Command):
                 age: int = classyclick.Option(default=10)
                 name: str = classyclick.Option(required=True)
 
@@ -114,16 +103,14 @@ class Test(BaseCase):
 
         with self.assertRaisesRegex(TypeError, "non-default argument 'name' follows default argument"):
 
-            @classyclick.command()
-            class Hello:
+            class Hello(classyclick.Command):
                 age: int = classyclick.Option(default=10)
                 name: str = classyclick.Argument()
 
                 def __call__(self): ...
 
     def test_name_and_help(self):
-        @classyclick.command()
-        class Hello:
+        class Hello(classyclick.Command):
             """test command"""
 
             name: str = classyclick.Argument()
@@ -146,9 +133,10 @@ Options:
 """,
         )
 
-        @classyclick.command(help='override pydocs', name='hello-there')
-        class Hello:
+        class Hello(classyclick.Command):
             """test command"""
+
+            __config__ = classyclick.Command.Config(help='override pydocs', name='hello-there')
 
             name: str = classyclick.Argument()
             age: int = classyclick.Option(default=10)
@@ -174,9 +162,10 @@ Options:
         @click.group
         def cli(): ...
 
-        @classyclick.command(group=cli)
-        class Hello:
+        class Hello(classyclick.Command):
             """test command"""
+
+            __config__ = classyclick.Command.Config(group=cli)
 
             name: str = classyclick.Argument()
             age: int = classyclick.Option(default=10)
@@ -206,5 +195,31 @@ Commands:
 Usage: cli hello [OPTIONS] NAME
 
   test command
+""",
+        )
+
+    def test_config_supports_click_kwargs(self):
+        class Hello(classyclick.Command):
+            """test command"""
+
+            __config__ = classyclick.Command.Config(name='hello-there', help='override')
+
+            name: str = classyclick.Argument()
+            age: int = classyclick.Option(default=10)
+
+            def __call__(self): ...
+
+        result = self.runner.invoke(Hello.click, args=['--help'])
+        self.assertEqual(result.exit_code, 0)
+        self.assertEqual(
+            result.output,
+            """\
+Usage: hello-there [OPTIONS] NAME
+
+  override
+
+Options:
+  --age INTEGER
+  --help         Show this message and exit.
 """,
         )
