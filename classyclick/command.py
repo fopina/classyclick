@@ -1,5 +1,10 @@
 from dataclasses import dataclass, fields
-from typing import TYPE_CHECKING, Callable, Protocol, TypeVar, Union, dataclass_transform
+from typing import TYPE_CHECKING, Callable, Protocol, TypeVar, Union
+
+try:
+    from typing import dataclass_transform
+except ImportError:
+    from typing_extensions import dataclass_transform
 
 if TYPE_CHECKING:
     import click

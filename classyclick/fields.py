@@ -2,8 +2,7 @@ import sys
 from dataclasses import MISSING
 from dataclasses import Field as DataclassField
 from typing import TYPE_CHECKING, Any, get_args, get_origin
-
-from typing_extensions import deprecated
+from warnings import deprecated
 
 if TYPE_CHECKING:
     from click import Command
