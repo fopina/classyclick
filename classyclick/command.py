@@ -1,5 +1,5 @@
 from dataclasses import dataclass, fields
-from typing import TYPE_CHECKING, Any, Callable, Protocol, TypeVar, Union, dataclass_transform
+from typing import TYPE_CHECKING, Callable, Protocol, TypeVar, Union, dataclass_transform
 
 if TYPE_CHECKING:
     import click
@@ -83,11 +83,7 @@ class Command:
     """Base class for class-based click commands."""
 
     class Config:
-        name: str | None
-        help: str | None
-        group: 'Any | None'
-
-        def __init__(self, *, name=None, help=None, group=None, **kwargs):
+        def __init__(self, *, name: str = None, help: str = None, group: 'click.Group' = None, **kwargs):
             self.__dict__.update(name=name, help=help, group=group, **kwargs)
 
     def __init_subclass__(cls, **kwargs):
