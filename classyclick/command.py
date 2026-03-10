@@ -110,5 +110,6 @@ class Command:
                 if key:
                     click_kwargs[key] = value
 
-        cls.__command__ = click.command(**click_kwargs)(func)
+        group = click_kwargs.pop('group', click)
+        cls.__command__ = group.command(**click_kwargs)(func)
         cls.click = cls.__command__
