@@ -1,13 +1,12 @@
 from dataclasses import dataclass, fields
-from typing import TYPE_CHECKING, Callable, Protocol, TypeVar, Union
+from typing import Callable, Protocol, TypeVar, Union
 
 try:
     from typing import dataclass_transform
 except ImportError:
     from typing_extensions import dataclass_transform
 
-if TYPE_CHECKING:
-    import click
+import click
 
 from . import utils
 from .fields import Argument, Context, ContextMeta, ContextObj, Option, _Field
@@ -24,15 +23,9 @@ class Clickable(Protocol):
     """
 
 
-def _get_click():
-    import click
-
-    return click
-
-
 def command(cls=None, *, group=None, **click_kwargs) -> Callable[[T], Union[T, Clickable]]:
     if group is None:
-        group = _get_click()
+        group = click
 
     def _wrapper(kls: T) -> Union[T, Clickable]:
         if not hasattr(kls, '__bases__'):
@@ -131,6 +124,6 @@ class Command:
 
         group = click_kwargs.pop('group', None)
         if group is None:
-            group = _get_click()
+            group = click
         cls.__command__ = group.command(**click_kwargs)(func)
         cls.click = cls.__command__
