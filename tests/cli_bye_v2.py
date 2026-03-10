@@ -7,7 +7,7 @@ sys.path.append(str(Path(__file__).parent.parent))
 
 import click
 
-from tests.cli_one_v2 import Hello
+from .cli_hello_v2 import Hello
 
 
 class Bye(Hello):
