@@ -223,3 +223,31 @@ Options:
   --help         Show this message and exit.
 """,
         )
+
+    def test_group_default_name(self):
+        class Cli(classyclick.Group): ...
+
+        self.assertEqual(Cli.click.name, 'cli')
+
+    def test_group_fields_and_subcommands(self):
+        class Cli(classyclick.Group):
+            """test group"""
+
+            count: int = classyclick.Option(default=1, help='Number of times.')
+
+            def __call__(self): ...
+
+        class Hello(classyclick.Command):
+            """test command"""
+
+            __config__ = classyclick.Command.Config(group=Cli.click)
+
+            name: str = classyclick.Argument()
+
+            def __call__(self): ...
+
+        result = self.runner.invoke(Cli.click, args=['--help'])
+        self.assertEqual(result.exit_code, 0)
+        self.assertIn('Usage: cli [OPTIONS] COMMAND [ARGS]...', result.output)
+        self.assertIn('  --count INTEGER', result.output)
+        self.assertIn('  hello  test command', result.output)

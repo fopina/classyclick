@@ -12,6 +12,7 @@ from .fields import (
     context_obj,
     option,
 )
+from .group import Group
 
 __all__ = [
     '__version__',
@@ -28,4 +29,5 @@ __all__ = [
     'ContextObj',
     'Option',
     'Command',
+    'Group',
 ]
