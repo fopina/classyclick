@@ -1,14 +1,9 @@
 from dataclasses import fields
 
-try:
-    from typing import dataclass_transform
-except ImportError:
-    from typing_extensions import dataclass_transform
-
 import click
 
 from . import utils
-from .command import Command, _strictly_typed_dataclass
+from .command import Command, _strictly_typed_dataclass, dataclass_transform
 from .fields import Argument, Context, ContextMeta, ContextObj, Option, _Field
 
 
