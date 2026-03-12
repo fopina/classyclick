@@ -76,6 +76,45 @@ def _strictly_typed_dataclass(kls):
     return dataclass(kls)
 
 
+def _build_click_class_command(cls, *, is_group=False):
+    _strictly_typed_dataclass(cls)
+
+    def func(*args, **kwargs):
+        if args:
+            args = list(args)
+            ctx = getattr(func, '__classy_context__', [])
+            for field_name in ctx:
+                kwargs[field_name] = args.pop()
+        cls(*args, **kwargs)()
+
+    func.__doc__ = cls.__doc__
+    func.__name__ = utils.camel_snake(cls.__name__)
+
+    for field in fields(cls)[::-1]:
+        if isinstance(field, _Field):
+            func = field(func)
+
+    click_kwargs = {}
+    config = getattr(cls, '__config__', None)
+    if isinstance(config, Command.Config):
+        click_kwargs.update(vars(config))
+
+    for name, value in cls.__dict__.items():
+        if name.startswith('__click_') and name.endswith('__'):
+            key = name[len('__click_') : -2]
+            if key and key not in click_kwargs:
+                click_kwargs[key] = value
+
+    click_group = click_kwargs.pop('group', None)
+    if click_group is None:
+        click_group = click
+    if is_group:
+        cls.__command__ = click_group.group(**click_kwargs)(func)
+    else:
+        cls.__command__ = click_group.command(**click_kwargs)(func)
+    cls.click = cls.__command__
+
+
 @dataclass_transform(field_specifiers=(Option, Argument, Context, ContextObj, ContextMeta))
 class Command:
     """Base class for class-based click commands."""
@@ -94,36 +133,4 @@ class Command:
 
     @classmethod
     def _build_click_command(cls):
-        _strictly_typed_dataclass(cls)
-
-        def func(*args, **kwargs):
-            if args:
-                args = list(args)
-                ctx = getattr(func, '__classy_context__', [])
-                for field_name in ctx:
-                    kwargs[field_name] = args.pop()
-            cls(*args, **kwargs)()
-
-        func.__doc__ = cls.__doc__
-        func.__name__ = utils.camel_snake(cls.__name__)
-
-        for field in fields(cls)[::-1]:
-            if isinstance(field, _Field):
-                func = field(func)
-
-        click_kwargs = {}
-        config = getattr(cls, '__config__', None)
-        if isinstance(config, Command.Config):
-            click_kwargs.update(vars(config))
-
-        for name, value in cls.__dict__.items():
-            if name.startswith('__click_') and name.endswith('__'):
-                key = name[len('__click_') : -2]
-                if key and key not in click_kwargs:
-                    click_kwargs[key] = value
-
-        group = click_kwargs.pop('group', None)
-        if group is None:
-            group = click
-        cls.__command__ = group.command(**click_kwargs)(func)
-        cls.click = cls.__command__
+        _build_click_class_command(cls, is_group=False)
