@@ -71,3 +71,6 @@ class Group:
     @classmethod
     def _build_click_command(cls):
         _build_click_class_command(cls, is_group=True)
+
+    def __call__(self):
+        """placeholder as many groups will not need anything"""
