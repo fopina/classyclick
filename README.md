@@ -231,7 +231,13 @@ Like [@click.pass_context](https://click.palletsprojects.com/en/stable/api/#clic
 
 <!-- example-id: tests/cli_next_ctx.py 3 -->
 ```python
-@classyclick.command()
+@click.group()
+@click.pass_context
+def next_group(ctx):
+    ctx.obj = SimpleNamespace(step_number=4)
+
+
+@classyclick.command(group=next_group)
 class Next:
     """Output the next number."""
 
@@ -248,7 +254,7 @@ Like [@click.pass_obj](https://click.palletsprojects.com/en/stable/api/#click.pa
 
 <!-- example-id: tests/cli_next_ctx_obj.py 3 -->
 ```python
-@classyclick.command()
+@classyclick.command(group=next_group)
 class Next:
     """Output the next number."""
 
@@ -265,7 +271,13 @@ Like [@click.pass_meta_key](https://click.palletsprojects.com/en/stable/api/#cli
 
 <!-- example-id: tests/cli_next_ctx_meta.py 3 -->
 ```python
-@classyclick.command()
+@click.group()
+@click.pass_context
+def next_group(ctx):
+    ctx.meta['step_number'] = 5
+
+
+@classyclick.command(group=next_group)
 class Next:
     """Output the next number."""
 

@@ -11,7 +11,13 @@ import classyclick
 
 
 # README +++
-@classyclick.command()
+@click.group()
+@click.pass_context
+def next_group(ctx):
+    ctx.meta['step_number'] = 5
+
+
+@classyclick.command(group=next_group)
 class Next:
     """Output the next number."""
 
@@ -25,4 +31,4 @@ class Next:
 # README ---
 
 if __name__ == '__main__':
-    Next.click()
+    next_group()

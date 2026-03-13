@@ -7,12 +7,13 @@ from typing import Any
 sys.path.append(str(Path(__file__).parent.parent))
 
 import click
+from cli_next_ctx import next_group
 
 import classyclick
 
 
 # README +++
-@classyclick.command()
+@classyclick.command(group=next_group)
 class Next:
     """Output the next number."""
 
@@ -26,4 +27,4 @@ class Next:
 # README ---
 
 if __name__ == '__main__':
-    Next.click()
+    next_group()
