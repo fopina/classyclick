@@ -86,3 +86,6 @@ class Command:
     @classmethod
     def _build_click_command(cls):
         _build_click_class_command(cls, is_group=False)
+    
+    def __call__(self):
+        raise NotImplementedError(f'{self.__class__} has not implemented __call__()')
