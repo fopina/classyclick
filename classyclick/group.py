@@ -1,4 +1,4 @@
-from .command import Command, _build_click_class_command, dataclass_transform
+from .command import _build_click_class_command, dataclass_transform
 from .fields import Argument, Context, ContextMeta, ContextObj, Option
 
 
@@ -6,8 +6,9 @@ from .fields import Argument, Context, ContextMeta, ContextObj, Option
 class Group:
     """Base class for class-based click groups."""
 
-    class Config(Command.Config):
-        pass
+    class Config:
+        def __init__(self, *, name: str = None, help: str = None, **kwargs):
+            self.__dict__.update(name=name, help=help, **kwargs)
 
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)

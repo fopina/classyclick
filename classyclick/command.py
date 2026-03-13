@@ -119,6 +119,11 @@ def _build_click_class_command(cls, *, is_group=False):
 class Command:
     """Base class for class-based click commands."""
 
+    __config__ = None
+    """
+    Customize the command with click arguments setting this to a classyclick.Command.Config instance
+    """
+
     class Config:
         def __init__(self, *, name: str = None, help: str = None, group: 'click.Group' = None, **kwargs):
             self.__dict__.update(name=name, help=help, group=group, **kwargs)

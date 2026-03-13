@@ -84,7 +84,7 @@ class _Field(DataclassField):
     def __init__(self, **attrs):
         self.attrs = attrs
         _default = attrs.get('default', self.default)
-        super().__init__(doc=None, default=_default, **_EXTRA_DATACLASS_INIT)
+        super().__init__(default=_default, **_EXTRA_DATACLASS_INIT)
 
     def infer_type(self):
         if 'type' not in self.attrs:
