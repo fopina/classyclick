@@ -6,6 +6,38 @@ from . import utils
 from .fields import Argument, Context, ContextMeta, ContextObj, Option, _Field
 
 
+def _get_base_config(cls):
+    for base in cls.__mro__[1:]:
+        if '__config__' in base.__dict__:
+            config = base.__dict__['__config__']
+            if config is not None:
+                return config
+        if '__group_config__' in base.__dict__:
+            group_config = base.__dict__['__group_config__']
+            if isinstance(group_config, type):
+                if '__config__' in group_config.__dict__:
+                    config = group_config.__dict__['__config__']
+                    if config is not None:
+                        return config
+            elif getattr(group_config, '__dict__', None) and group_config is not None:
+                return group_config
+    return None
+
+
+def _get_base_group(cls):
+    for base in cls.__mro__[1:]:
+        if '__group_config__' not in base.__dict__:
+            continue
+        group_ref = base.__dict__['__group_config__']
+        if group_ref is None:
+            continue
+        if isinstance(group_ref, type) and issubclass(group_ref, Group):
+            return group_ref
+        if getattr(group_ref, '__dict__', None):
+            return getattr(group_ref, 'group', group_ref)
+    return None
+
+
 def _build_click_class_command(cls, *, is_group=False):
     utils.strictly_typed_dataclass(cls)
 
@@ -25,7 +57,9 @@ def _build_click_class_command(cls, *, is_group=False):
             func = field(func)
 
     click_kwargs = {}
-    config = getattr(cls, '__config__', None)
+    config = cls.__dict__.get('__config__')
+    if config is None:
+        config = _get_base_config(cls)
     if getattr(config, '__dict__', None):
         click_kwargs.update(vars(config))
 
@@ -37,12 +71,15 @@ def _build_click_class_command(cls, *, is_group=False):
 
     click_group = click_kwargs.pop('group', None)
     if click_group is None:
+        click_group = _get_base_group(cls)
+    if click_group is None:
         click_group = click
+    if isinstance(click_group, type) and issubclass(click_group, Group):
+        click_group = click_group.click
     if is_group:
+        cls.__group_config__ = cls
         cls.__command__ = click_group.group(**click_kwargs)(func)
     else:
-        if isinstance(click_group, type) and issubclass(click_group, Group):
-            click_group = click_group.click
         cls.__command__ = click_group.command(**click_kwargs)(func)
     cls.click = cls.__command__
 
