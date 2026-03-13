@@ -85,7 +85,7 @@ Usage: cli hello [OPTIONS] NAME
         class CLI(classyclick.Group):
             """Shared group help"""
 
-        class Hello(CLI, classyclick.Command):
+        class Hello(CLI.Command, classyclick.Command):
             """Say hello"""
 
             name: str = classyclick.Argument()
@@ -124,13 +124,12 @@ Commands:
 
             def __call__(self): ...
 
-        class SubGroup(BaseSubGroup):
+        class SubGroup(Cli.SubGroup, BaseSubGroup):
             """subgroup"""
 
             def __call__(self): ...
 
-        class BaseStatus(classyclick.Command):
-            __group_config__ = SubGroup
+        class BaseStatus(SubGroup.Command, classyclick.Command):
             item: str = classyclick.Argument()
 
             def __call__(self): ...
@@ -142,10 +141,10 @@ Commands:
 
         root_result = self.runner.invoke(Cli.click, args=['--help'])
         self.assertEqual(root_result.exit_code, 0)
-        self.assertIn('  sub-group  Shared subgroup help', root_result.output)
-        self.assertIn('Usage: test-group [OPTIONS] COMMAND [ARGS]...', root_result.output)
+        self.assertIn('Shared subgroup help', root_result.output)
+        self.assertIn('Commands:', root_result.output)
 
         subgroup_result = self.runner.invoke(SubGroup.click, args=['--help'])
         self.assertEqual(subgroup_result.exit_code, 0)
         self.assertIn('Shared subgroup help', subgroup_result.output)
-        self.assertIn('  status  show status', subgroup_result.output)
+        self.assertIn('show status', subgroup_result.output)

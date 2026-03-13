@@ -107,11 +107,20 @@ class Group:
         if cls is Group:
             return
 
-        cls._build_click_command()
+        cls._build_click_group()
+        cls._bind_children()
 
     @classmethod
-    def _build_click_command(cls):
+    def _build_click_group(cls):
         _build_click_class_command(cls, is_group=True)
+
+    @classmethod
+    def _bind_children(cls):
+        class Mixin:
+            __group_config__ = cls
+
+        cls.Command = Mixin
+        cls.SubGroup = Mixin
 
     def __call__(self):
         """placeholder as many groups will not need anything"""
