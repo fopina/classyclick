@@ -273,11 +273,11 @@ Like [@click.pass_meta_key](https://click.palletsprojects.com/en/stable/api/#cli
 ```python
 @click.group()
 @click.pass_context
-def next_group(ctx):
+def next_group_meta(ctx):
     ctx.meta['step_number'] = 5
 
 
-@classyclick.command(group=next_group)
+@classyclick.command(group=next_group_meta)
 class Next:
     """Output the next number."""
 
