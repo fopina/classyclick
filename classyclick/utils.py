@@ -7,7 +7,7 @@ try:
     from typing import dataclass_transform
 except ImportError:
     # for python < 3.13
-    from typing_extensions import dataclass_transform
+    from typing_extensions import dataclass_transform  # type: ignore
 
 
 def camel_kebab(camel_value):
