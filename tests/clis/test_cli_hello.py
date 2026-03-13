@@ -1,10 +1,10 @@
-from . import CliTestCase, load_cli_script
+from . import CliTestCase
 
 
 class Test(CliTestCase):
     def test_cli_hello(self):
-        module = load_cli_script('cli_hello.py')
+        from ..cli_hello import Hello
 
-        result = self.invoker(module.Hello.click, ['--name', 'classyclick', '--count', '2'])
+        result = self.invoker(Hello.click, ['--name', 'classyclick', '--count', '2'])
 
         self.assertEqual(result.output, 'Hello, kcilcyssalc!\nHello, kcilcyssalc!\n')

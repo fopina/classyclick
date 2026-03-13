@@ -1,11 +1,11 @@
-from . import CliTestCase, load_cli_script
+from . import CliTestCase
 
 
 class Test(CliTestCase):
     def test_cli_short_samples(self):
-        module = load_cli_script('cli_short_samples.py')
+        from ..cli_short_samples import Hello
 
-        result = self.invoker(module.Hello.click, ['--help'])
+        result = self.invoker(Hello.click, ['--help'])
 
         self.assertEqual(
             result.output,

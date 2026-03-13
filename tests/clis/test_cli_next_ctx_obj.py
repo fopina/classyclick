@@ -2,19 +2,19 @@ from types import SimpleNamespace
 
 import click
 
-from . import CliTestCase, load_cli_script
+from . import CliTestCase
 
 
 class Test(CliTestCase):
     def test_cli_next_ctx_obj(self):
-        module = load_cli_script('cli_next_ctx_obj.py')
+        from ..cli_next_ctx_obj import Next
 
         @click.group()
         @click.pass_context
         def cli(ctx):
             ctx.obj = SimpleNamespace(step_number=4)
 
-        cli.add_command(module.Next.click)
+        cli.add_command(Next.click)
 
         result = self.invoker(cli, ['next', '3'])
 

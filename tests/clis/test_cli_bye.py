@@ -1,10 +1,9 @@
-from . import CliTestCase, load_cli_script
+from . import CliTestCase
 
 
 class Test(CliTestCase):
     def test_cli_bye(self):
-        module = load_cli_script('cli_bye.py')
+        from ..cli_bye import Bye
 
-        result = self.invoker(module.Bye.click, ['--name', 'classyclick'])
-
+        result = self.invoker(Bye.click, ['--name', 'classyclick'])
         self.assertEqual(result.output, 'Bye, kcilcyssalc!\n')

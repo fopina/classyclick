@@ -1,10 +1,10 @@
-from . import CliTestCase, load_cli_script
+from . import CliTestCase
 
 
 class Test(CliTestCase):
     def test_cli_next(self):
-        module = load_cli_script('cli_next.py')
+        from ..cli_next import Next
 
-        result = self.invoker(module.Next.click, ['3'])
+        result = self.invoker(Next.click, ['3'])
 
         self.assertEqual(result.output, '4\n')
