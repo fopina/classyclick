@@ -70,6 +70,10 @@ class Command:
     """
     Customize the command with click arguments setting this to a classyclick.Command.Config instance
     """
+    click: 'click.Command'
+    """
+    The generated click.Command object
+    """
 
     class Config:
         def __init__(self, *, name: str = None, help: str = None, group: 'click.Group' = None, **kwargs):

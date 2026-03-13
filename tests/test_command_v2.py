@@ -1,4 +1,3 @@
-import click
 from click.testing import CliRunner
 
 import classyclick
@@ -167,46 +166,6 @@ Options:
 """,
         )
 
-    def test_group(self):
-        @click.group
-        def cli(): ...
-
-        class Hello(classyclick.Command):
-            """test command"""
-
-            __config__ = classyclick.Command.Config(group=cli)
-
-            name: str = classyclick.Argument()
-            age: int = classyclick.Option(default=10)
-
-            def __call__(self): ...
-
-        result = self.runner.invoke(cli, args=['--help'])
-        self.assertEqual(result.exit_code, 0)
-        self.assertEqual(
-            result.output,
-            """\
-Usage: cli [OPTIONS] COMMAND [ARGS]...
-
-Options:
-  --help  Show this message and exit.
-
-Commands:
-  hello  test command
-""",
-        )
-        result = self.runner.invoke(cli, args=['hello', '--help'])
-        self.assertEqual(result.exit_code, 0)
-        # match just the prefix
-        self.assertEqual(
-            result.output[:48],
-            """\
-Usage: cli hello [OPTIONS] NAME
-
-  test command
-""",
-        )
-
     def test_config_supports_click_kwargs(self):
         class Hello(classyclick.Command):
             """test command"""
@@ -233,30 +192,55 @@ Options:
 """,
         )
 
-    def test_group_default_name(self):
-        class Cli(classyclick.Group): ...
-
-        self.assertEqual(Cli.click.name, 'cli')
-
-    def test_group_fields_and_subcommands(self):
-        class Cli(classyclick.Group):
-            """test group"""
-
-            count: int = classyclick.Option(default=1, help='Number of times.')
-
-            def __call__(self): ...
-
+    def test_subclassing(self):
         class Hello(classyclick.Command):
-            """test command"""
-
-            __config__ = classyclick.Command.Config(group=Cli.click)
+            """command one"""
 
             name: str = classyclick.Argument()
 
-            def __call__(self): ...
+            def __call__(self):
+                print(f'Hello {self.name}')
 
-        result = self.runner.invoke(Cli.click, args=['--help'])
+        class Bye(Hello):
+            """command two"""
+
+            silent: bool = classyclick.Option(help='Just wave')
+
+            def __call__(self):
+                if self.silent:
+                    print(':wave:')
+                else:
+                    print(f'Bye {self.name}')
+
+        result = self.runner.invoke(Hello.click, ['--help'])
+        self.assertEqual(
+            result.output,
+            """\
+Usage: hello [OPTIONS] NAME
+
+  command one
+
+Options:
+  --help  Show this message and exit.
+""",
+        )
+        result = self.runner.invoke(Hello.click, ['John'])
         self.assertEqual(result.exit_code, 0)
-        self.assertIn('Usage: cli [OPTIONS] COMMAND [ARGS]...', result.output)
-        self.assertIn('  --count INTEGER', result.output)
-        self.assertIn('  hello  test command', result.output)
+        self.assertEqual(result.output, 'Hello John\n')
+
+        result = self.runner.invoke(Bye.click, ['--help'])
+        self.assertEqual(
+            result.output,
+            """\
+Usage: bye [OPTIONS] NAME
+
+  command two
+
+Options:
+  --silent  Just wave
+  --help    Show this message and exit.
+""",
+        )
+        result = self.runner.invoke(Bye.click, ['John'])
+        self.assertEqual(result.exit_code, 0)
+        self.assertEqual(result.output, 'Bye John\n')

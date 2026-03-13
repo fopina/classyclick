@@ -55,6 +55,10 @@ class Group:
     """
     Customize the group with click arguments setting this to a classyclick.Group.Config instance
     """
+    click: 'click.Group'
+    """
+    The generated click.Group object
+    """
 
     class Config:
         def __init__(self, *, name: str = None, help: str = None, **kwargs):
