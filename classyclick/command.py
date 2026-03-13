@@ -111,6 +111,8 @@ def _build_click_class_command(cls, *, is_group=False):
     if is_group:
         cls.__command__ = click_group.group(**click_kwargs)(func)
     else:
+        if issubclass(click_group, Group):
+            click_group = click_group.click
         cls.__command__ = click_group.command(**click_kwargs)(func)
     cls.click = cls.__command__
 
@@ -139,3 +141,6 @@ class Command:
     @classmethod
     def _build_click_command(cls):
         _build_click_class_command(cls, is_group=False)
+
+
+from .group import Group

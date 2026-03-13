@@ -14,6 +14,9 @@ import classyclick
 class Greet(classyclick.Group):
     """Greet group"""
 
+    def __call__(self):
+        pass
+
 
 class Hello(classyclick.Command):
     """Simple program that greets NAME for a total of COUNT times."""
