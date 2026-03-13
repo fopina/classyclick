@@ -81,11 +81,13 @@ class Command:
         if cls is Command:
             return
 
+        if '__call__' not in cls.__dict__ and not any(
+            '__call__' in getattr(base, '__dict__', {}) for base in cls.__mro__[1:] if base is not Command
+        ):
+            raise NotImplementedError(f'{cls} has not implemented __call__()')
+
         cls._build_click_command()
 
     @classmethod
     def _build_click_command(cls):
         _build_click_class_command(cls, is_group=False)
-
-    def __call__(self):
-        raise NotImplementedError(f'{self.__class__} has not implemented __call__()')

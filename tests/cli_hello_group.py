@@ -23,7 +23,7 @@ class Hello(classyclick.Command):
     name: str = classyclick.Option(prompt='Your name', help='The person to greet.')
     count: int = classyclick.Option('-c', default=1, help='Number of greetings.')
 
-    def __call__(self):
+    def __xcall__(self):
         for _ in range(self.count):
             click.echo(f'Hello, {self.name}!')
 

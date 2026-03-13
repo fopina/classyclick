@@ -10,20 +10,29 @@ class Test(BaseCase):
         self.runner = CliRunner()
 
     def test_command_default_name(self):
-        class Hello(classyclick.Command): ...
+        class Hello(classyclick.Command):
+            def __call__(self): ...
 
         self.assertEqual(Hello.click.name, 'hello')
 
-        class HelloThere(classyclick.Command): ...
+        class HelloThere(classyclick.Command):
+            def __call__(self): ...
 
         self.assertEqual(HelloThere.click.name, 'hello-there')
 
-        class HelloThereCommand(classyclick.Command): ...
+        class HelloThereCommand(classyclick.Command):
+            def __call__(self): ...
 
         if self.click_version < (8, 2):
             self.assertEqual(HelloThereCommand.click.name, 'hello-there-command')
         else:
             self.assertEqual(HelloThereCommand.click.name, 'hello-there')
+
+    def test_missing_call_raises_early(self):
+        with self.assertRaisesRegex(NotImplementedError, 'has not implemented __call__()'):
+
+            class Hello(classyclick.Command):
+                pass
 
     def test_init_defaults(self):
         class Hello(classyclick.Command):
