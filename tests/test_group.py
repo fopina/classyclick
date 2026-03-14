@@ -117,34 +117,50 @@ Commands:
         class Cli(classyclick.Group):
             """test group"""
 
-            def __call__(self): ...
-
-        class BaseSubGroup(classyclick.Group):
-            __config__ = classyclick.Group.Config(help='Shared subgroup help')
-
-            def __call__(self): ...
-
-        class SubGroup(Cli.SubGroup, BaseSubGroup):
+        class SubGroup(Cli.SubGroup, classyclick.Group):
             """subgroup"""
 
-            def __call__(self): ...
-
-        class BaseStatus(SubGroup.Command, classyclick.Command):
-            item: str = classyclick.Argument()
-
-            def __call__(self): ...
-
-        class Status(BaseStatus):
+        class Status(SubGroup.Command, classyclick.Command):
             """show status"""
 
-            def __call__(self): ...
+            item: str = classyclick.Argument()
+
+            def __call__(self):
+                print(f'{self.item} is here')
 
         root_result = self.runner.invoke(Cli.click, args=['--help'])
         self.assertEqual(root_result.exit_code, 0)
-        self.assertIn('Shared subgroup help', root_result.output)
-        self.assertIn('Commands:', root_result.output)
+        self.assertEqual(
+            root_result.output,
+            """\
+Usage: cli [OPTIONS] COMMAND [ARGS]...
 
-        subgroup_result = self.runner.invoke(SubGroup.click, args=['--help'])
+  test group
+
+Options:
+  --help  Show this message and exit.
+
+Commands:
+  sub  subgroup
+""",
+        )
+
+        subgroup_result = self.runner.invoke(Cli.click, args=['sub', '--help'])
         self.assertEqual(subgroup_result.exit_code, 0)
-        self.assertIn('Shared subgroup help', subgroup_result.output)
-        self.assertIn('show status', subgroup_result.output)
+        self.assertEqual(
+            subgroup_result.output,
+            """\
+Usage: cli sub [OPTIONS] COMMAND [ARGS]...
+
+  subgroup
+
+Options:
+  --help  Show this message and exit.
+
+Commands:
+  status  show status
+""",
+        )
+        subgroup_result = self.runner.invoke(Cli.click, args=['sub', 'status', 'fork'])
+        self.assertEqual(subgroup_result.exit_code, 0)
+        self.assertEqual(subgroup_result.output, 'fork is here\n')
