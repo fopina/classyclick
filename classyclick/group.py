@@ -6,35 +6,43 @@ from . import utils
 from .fields import Argument, Context, ContextMeta, ContextObj, Option, _Field
 
 
+def _config_from_group_ref(group_ref):
+    if group_ref is None:
+        return None
+    if isinstance(group_ref, type):
+        return group_ref.__dict__.get('__config__')
+    if getattr(group_ref, '__dict__', None):
+        return group_ref
+    return None
+
+
+def _group_from_group_ref(group_ref):
+    if group_ref is None:
+        return None
+    if isinstance(group_ref, type) and issubclass(group_ref, Group):
+        return group_ref
+    if getattr(group_ref, '__dict__', None):
+        return getattr(group_ref, 'group', group_ref)
+    return None
+
+
 def _get_base_config(cls):
     for base in cls.__mro__[1:]:
-        if '__config__' in base.__dict__:
-            config = base.__dict__['__config__']
-            if config is not None:
-                return config
-        if '__group_config__' in base.__dict__:
-            group_config = base.__dict__['__group_config__']
-            if isinstance(group_config, type):
-                if '__config__' in group_config.__dict__:
-                    config = group_config.__dict__['__config__']
-                    if config is not None:
-                        return config
-            elif getattr(group_config, '__dict__', None) and group_config is not None:
-                return group_config
+        config = base.__dict__.get('__config__')
+        if config is not None:
+            return config
+
+        config = _config_from_group_ref(base.__dict__.get('__group_config__'))
+        if config is not None:
+            return config
     return None
 
 
 def _get_base_group(cls):
     for base in cls.__mro__[1:]:
-        if '__group_config__' not in base.__dict__:
-            continue
-        group_ref = base.__dict__['__group_config__']
-        if group_ref is None:
-            continue
-        if isinstance(group_ref, type) and issubclass(group_ref, Group):
-            return group_ref
-        if getattr(group_ref, '__dict__', None):
-            return getattr(group_ref, 'group', group_ref)
+        group = _group_from_group_ref(base.__dict__.get('__group_config__'))
+        if group is not None:
+            return group
     return None
 
 
