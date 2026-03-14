@@ -6,41 +6,9 @@ from . import utils
 from .fields import Argument, Context, ContextMeta, ContextObj, Option, _Field
 
 
-def _config_from_group_ref(group_ref):
-    if group_ref is None:
-        return None
-    if isinstance(group_ref, type):
-        return group_ref.__dict__.get('__config__')
-    if getattr(group_ref, '__dict__', None):
-        return group_ref
-    return None
-
-
-def _group_from_group_ref(group_ref):
-    if group_ref is None:
-        return None
-    if isinstance(group_ref, type) and issubclass(group_ref, Group):
-        return group_ref
-    if getattr(group_ref, '__dict__', None):
-        return getattr(group_ref, 'group', group_ref)
-    return None
-
-
-def _get_base_config(cls):
+def _get_base_group_config(cls):
     for base in cls.__mro__[1:]:
-        config = base.__dict__.get('__config__')
-        if config is not None:
-            return config
-
-        config = _config_from_group_ref(base.__dict__.get('__group_config__'))
-        if config is not None:
-            return config
-    return None
-
-
-def _get_base_group(cls):
-    for base in cls.__mro__[1:]:
-        group = _group_from_group_ref(base.__dict__.get('__group_config__'))
+        group = getattr(base, '__group_config__', None)
         if group is not None:
             return group
     return None
@@ -65,11 +33,8 @@ def _build_click_class_command(cls, *, is_group=False):
             func = field(func)
 
     click_kwargs = {}
-    config = cls.__dict__.get('__config__')
-    if config is None:
-        config = _get_base_config(cls)
-    if getattr(config, '__dict__', None):
-        click_kwargs.update(vars(config))
+    if cls.__config__:
+        click_kwargs.update(vars(cls.__config__))
 
     for name, value in cls.__dict__.items():
         if name.startswith('__click_') and name.endswith('__'):
@@ -79,7 +44,7 @@ def _build_click_class_command(cls, *, is_group=False):
 
     click_group = click_kwargs.pop('group', None)
     if click_group is None:
-        click_group = _get_base_group(cls)
+        click_group = _get_base_group_config(cls)
     if click_group is None:
         click_group = click
     if isinstance(click_group, type) and issubclass(click_group, Group):
