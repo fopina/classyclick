@@ -1,15 +1,11 @@
-from dataclasses import dataclass, fields
+from dataclasses import fields
 from typing import Callable, Protocol, TypeVar, Union
-
-try:
-    from typing import dataclass_transform
-except ImportError:
-    from typing_extensions import dataclass_transform
 
 import click
 
 from . import utils
 from .fields import Argument, Context, ContextMeta, ContextObj, Option, _Field
+from .group import _build_click_class_command
 
 T = TypeVar('T')
 
@@ -46,7 +42,7 @@ def command(cls=None, *, group=None, **click_kwargs) -> Callable[[T], Union[T, C
         func.__name__ = utils.camel_snake(kls.__name__)
 
         # at the end so it doesn't affect __doc__ or others
-        _strictly_typed_dataclass(kls)
+        utils.strictly_typed_dataclass(kls)
 
         # apply options
         # apply in reverse order to match click's behavior - it DOES MATTER when multiple click.argument
@@ -66,19 +62,18 @@ def command(cls=None, *, group=None, **click_kwargs) -> Callable[[T], Union[T, C
     return _wrapper(cls)
 
 
-def _strictly_typed_dataclass(kls):
-    annotations = getattr(kls, '__annotations__', {})
-    for name, val in kls.__dict__.items():
-        if name.startswith('__'):
-            continue
-        if name not in annotations and isinstance(val, _Field):
-            raise TypeError(f"{kls.__module__}.{kls.__qualname__} is missing type for classy field '{name}'")
-    return dataclass(kls)
-
-
-@dataclass_transform(field_specifiers=(Option, Argument, Context, ContextObj, ContextMeta))
+@utils.dataclass_transform(field_specifiers=(Option, Argument, Context, ContextObj, ContextMeta))
 class Command:
     """Base class for class-based click commands."""
+
+    __config__: 'Config | None' = None
+    """
+    Customize the command with click arguments setting this to a classyclick.Command.Config instance
+    """
+    click: 'click.Command'
+    """
+    The generated click.Command object
+    """
 
     class Config:
         def __init__(self, *, name: str = None, help: str = None, group: 'click.Group' = None, **kwargs):
@@ -90,40 +85,13 @@ class Command:
         if cls is Command:
             return
 
+        if '__call__' not in cls.__dict__ and not any(
+            '__call__' in getattr(base, '__dict__', {}) for base in cls.__mro__[1:] if base is not Command
+        ):
+            raise NotImplementedError(f'{cls} has not implemented __call__()')
+
         cls._build_click_command()
 
     @classmethod
     def _build_click_command(cls):
-        _strictly_typed_dataclass(cls)
-
-        def func(*args, **kwargs):
-            if args:
-                args = list(args)
-                ctx = getattr(func, '__classy_context__', [])
-                for field_name in ctx:
-                    kwargs[field_name] = args.pop()
-            cls(*args, **kwargs)()
-
-        func.__doc__ = cls.__doc__
-        func.__name__ = utils.camel_snake(cls.__name__)
-
-        for field in fields(cls)[::-1]:
-            if isinstance(field, _Field):
-                func = field(func)
-
-        click_kwargs = {}
-        config = getattr(cls, '__config__', None)
-        if isinstance(config, Command.Config):
-            click_kwargs.update(vars(config))
-
-        for name, value in cls.__dict__.items():
-            if name.startswith('__click_') and name.endswith('__'):
-                key = name[len('__click_') : -2]
-                if key and key not in click_kwargs:
-                    click_kwargs[key] = value
-
-        group = click_kwargs.pop('group', None)
-        if group is None:
-            group = click
-        cls.__command__ = group.command(**click_kwargs)(func)
-        cls.click = cls.__command__
+        _build_click_class_command(cls, is_group=False)
