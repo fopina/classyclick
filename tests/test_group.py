@@ -130,9 +130,13 @@ Commands:
 
         root_result = self.runner.invoke(Cli.click, args=['--help'])
         self.assertEqual(root_result.exit_code, 0)
+        if self.click_version < (8, 2):
+            sub_cmd = 'sub-group'
+        else:
+            sub_cmd = 'sub'
         self.assertEqual(
             root_result.output,
-            """\
+            f"""\
 Usage: cli [OPTIONS] COMMAND [ARGS]...
 
   test group
@@ -141,16 +145,16 @@ Options:
   --help  Show this message and exit.
 
 Commands:
-  sub  subgroup
+  {sub_cmd}  subgroup
 """,
         )
 
-        subgroup_result = self.runner.invoke(Cli.click, args=['sub', '--help'])
+        subgroup_result = self.runner.invoke(Cli.click, args=[sub_cmd, '--help'])
         self.assertEqual(subgroup_result.exit_code, 0)
         self.assertEqual(
             subgroup_result.output,
-            """\
-Usage: cli sub [OPTIONS] COMMAND [ARGS]...
+            f"""\
+Usage: cli {sub_cmd} [OPTIONS] COMMAND [ARGS]...
 
   subgroup
 
@@ -161,6 +165,6 @@ Commands:
   status  show status
 """,
         )
-        subgroup_result = self.runner.invoke(Cli.click, args=['sub', 'status', 'fork'])
+        subgroup_result = self.runner.invoke(Cli.click, args=[sub_cmd, 'status', 'fork'])
         self.assertEqual(subgroup_result.exit_code, 0)
         self.assertEqual(subgroup_result.output, 'fork is here\n')
