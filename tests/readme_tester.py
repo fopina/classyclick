@@ -7,16 +7,6 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
 
-README_PATH = Path(__file__).resolve().parents[1] / 'README.md'
-TESTS_DIR = Path(__file__).resolve().parent
-
-EXAMPLE_RE = re.compile(
-    r'(?ms)^[ \t]*<!--\s*(?P<kind>example-id(?:-output)?)\s*:\s*(?P<marker>.+?)\s*-->\s*```(?P<lang>\S*)\s*\n(?P<code>.*?)```'
-)
-README_EXCLUDE_RE = re.compile(r'^\s*#\s*README-EXCLUDE\b')
-README_BLOCK_START_RE = re.compile(r'^\s*#\s*README(?::(?P<block_id>\S+))?\s*\+\+\+\s*$')
-README_BLOCK_END_RE = re.compile(r'^\s*#\s*README(?::(?P<block_id>\S+))?\s*---\s*$')
-
 
 @dataclass
 class ReadmeExample:
@@ -30,6 +20,15 @@ class ReadmeExample:
 
 
 class ReadmeParsingTestCase(unittest.TestCase, ABC):
+    README_PATH = Path(__file__).resolve().parents[1] / 'README.md'
+    TESTS_DIR = Path(__file__).resolve().parent
+    EXAMPLE_RE = re.compile(
+        r'(?ms)^[ \t]*<!--\s*(?P<kind>example-id(?:-output)?)\s*:\s*(?P<marker>.+?)\s*-->\s*```(?P<lang>\S*)\s*\n(?P<code>.*?)```'
+    )
+    README_EXCLUDE_RE = re.compile(r'^\s*#\s*README-EXCLUDE\b')
+    README_BLOCK_START_RE = re.compile(r'^\s*#\s*README(?::(?P<block_id>\S+))?\s*\+\+\+\s*$')
+    README_BLOCK_END_RE = re.compile(r'^\s*#\s*README(?::(?P<block_id>\S+))?\s*---\s*$')
+
     @abstractmethod
     def _readme_test_case(self):
         """Concrete subclasses enable unittest discovery."""
@@ -67,7 +66,7 @@ class ReadmeParsingTestCase(unittest.TestCase, ABC):
                 kind='output' if example.is_output else 'code',
             ):
                 target = self._normalize_cli_target(example.cli)
-                cli_file = TESTS_DIR / target
+                cli_file = self.TESTS_DIR / target
                 self.assertTrue(
                     cli_file.exists(),
                     f'README marker at line {example.line} points to {example.cli}, but {cli_file} does not exist',
@@ -120,7 +119,7 @@ class ReadmeParsingTestCase(unittest.TestCase, ABC):
 
                 used_blocks_per_cli[target][example.readme_id] = used + 1
 
-        for cli_file in sorted(TESTS_DIR.glob('cli*.py')):
+        for cli_file in sorted(self.TESTS_DIR.glob('cli*.py')):
             if self._cli_file_is_excluded(cli_file):
                 continue
 
@@ -141,9 +140,9 @@ class ReadmeParsingTestCase(unittest.TestCase, ABC):
                     )
 
     def _iter_readme_examples(self):
-        readme = README_PATH.read_text()
+        readme = self.README_PATH.read_text()
 
-        for match in EXAMPLE_RE.finditer(readme):
+        for match in self.EXAMPLE_RE.finditer(readme):
             raw_marker = match.group('marker').strip()
             marker_parts = shlex.split(raw_marker)
             if not marker_parts:
@@ -164,7 +163,7 @@ class ReadmeParsingTestCase(unittest.TestCase, ABC):
             )
 
     def _cli_file_is_excluded(self, cli_file: Path) -> bool:
-        return any(README_EXCLUDE_RE.match(line) for line in cli_file.read_text(encoding='utf-8').splitlines())
+        return any(self.README_EXCLUDE_RE.match(line) for line in cli_file.read_text(encoding='utf-8').splitlines())
 
     def _readme_blocks_in_cli_file(self, cli_file: Path) -> dict[Optional[str], list[str]]:
         lines = cli_file.read_text(encoding='utf-8').splitlines()
@@ -175,7 +174,7 @@ class ReadmeParsingTestCase(unittest.TestCase, ABC):
         has_markers = False
 
         for line in lines:
-            start_match = README_BLOCK_START_RE.match(line)
+            start_match = self.README_BLOCK_START_RE.match(line)
             if start_match:
                 if collecting:
                     raise ValueError(f'Nested README marker in {cli_file}')
@@ -185,7 +184,7 @@ class ReadmeParsingTestCase(unittest.TestCase, ABC):
                 block = []
                 continue
 
-            end_match = README_BLOCK_END_RE.match(line)
+            end_match = self.README_BLOCK_END_RE.match(line)
             if end_match:
                 if not collecting:
                     raise ValueError(f'Unexpected README end marker in {cli_file}')
@@ -232,7 +231,7 @@ class ReadmeParsingTestCase(unittest.TestCase, ABC):
 
         result = subprocess.run(
             cmd,
-            cwd=TESTS_DIR.parent,
+            cwd=self.TESTS_DIR.parent,
             check=False,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
@@ -247,7 +246,7 @@ class ReadmeParsingTestCase(unittest.TestCase, ABC):
         target_stem = Path(target).with_suffix('').name
         if target_stem.startswith('test_'):
             return None
-        return TESTS_DIR / 'clis' / f'test_{target_stem}.py'
+        return self.TESTS_DIR / 'clis' / f'test_{target_stem}.py'
 
     def _normalize_cli_target(self, cli_target: str) -> str:
         normalized = cli_target.strip().removeprefix('tests/')
