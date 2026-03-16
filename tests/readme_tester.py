@@ -2,7 +2,6 @@ import re
 import shlex
 import subprocess
 import unittest
-from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
@@ -19,9 +18,9 @@ class ReadmeExample:
     is_output: bool
 
 
-class ReadmeParsingTestCase(unittest.TestCase, ABC):
-    README_PATH = Path(__file__).resolve().parents[1] / 'README.md'
-    TESTS_DIR = Path(__file__).resolve().parent
+class ReadmeParsingTestCase(unittest.TestCase):
+    README_PATH = None
+    TESTS_DIR = None
     EXAMPLE_RE = re.compile(
         r'(?ms)^[ \t]*<!--\s*(?P<kind>example-id(?:-output)?)\s*:\s*(?P<marker>.+?)\s*-->\s*```(?P<lang>\S*)\s*\n(?P<code>.*?)```'
     )
@@ -29,9 +28,18 @@ class ReadmeParsingTestCase(unittest.TestCase, ABC):
     README_BLOCK_START_RE = re.compile(r'^\s*#\s*README(?::(?P<block_id>\S+))?\s*\+\+\+\s*$')
     README_BLOCK_END_RE = re.compile(r'^\s*#\s*README(?::(?P<block_id>\S+))?\s*---\s*$')
 
-    @abstractmethod
-    def _readme_test_case(self):
-        """Concrete subclasses enable unittest discovery."""
+    # make sure this is not executed by test runner, only subclasses of it
+    __test__ = False
+
+    def __init_subclass__(cls, *args, **kwargs):
+        super().__init_subclass__(**kwargs)
+
+        cls.__test__ = True
+
+        if cls.README_PATH is None:
+            raise TypeError(f'{cls.__name__} must define README_PATH')
+        if cls.TESTS_DIR is None:
+            raise TypeError(f'{cls.__name__} must define TESTS_DIR')
 
     def test_readme_example_targets_have_clis_tests(self):
         self.maxDiff = None
