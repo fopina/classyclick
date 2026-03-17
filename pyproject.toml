@@ -33,6 +33,7 @@ dev = [
     "pytest-socket",
     "ruff",
     "twine",
+    "readme-example-tester",
 ]
 
 [project.urls]
