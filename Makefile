@@ -19,3 +19,6 @@ testpub:
 	rm -fr dist
 	uv run pyproject-build
 	uv run twine upload --repository testpypi dist/*
+
+test-docs: 
+	uv run mkdocs serve
