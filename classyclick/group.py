@@ -15,6 +15,7 @@ def _get_base_group_config(cls):
 
 
 def _build_click_class_command(cls, *, is_group=False):
+    doc = cls.__doc__
     utils.strictly_typed_dataclass(cls)
 
     def func(*args, **kwargs):
@@ -25,7 +26,7 @@ def _build_click_class_command(cls, *, is_group=False):
                 kwargs[field_name] = args.pop()
         cls(*args, **kwargs)()
 
-    func.__doc__ = cls.__doc__
+    func.__doc__ = doc
     func.__name__ = utils.camel_snake(cls.__name__)
 
     for field in fields(cls)[::-1]:

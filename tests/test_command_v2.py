@@ -166,6 +166,22 @@ Options:
 """,
         )
 
+    def test_help_without_docstring_is_empty(self):
+        class Hello(classyclick.Command):
+            def __call__(self): ...
+
+        result = self.runner.invoke(Hello.click, args=['--help'])
+        self.assertEqual(result.exit_code, 0)
+        self.assertEqual(
+            result.output,
+            """\
+Usage: hello [OPTIONS]
+
+Options:
+  --help  Show this message and exit.
+""",
+        )
+
     def test_config_supports_click_kwargs(self):
         class Hello(classyclick.Command):
             """test command"""
