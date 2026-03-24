@@ -208,3 +208,28 @@ Usage: cli hello [OPTIONS] NAME
   test command
 """,
         )
+
+    def test_option_help_from_attribute_docstring(self):
+        @classyclick.command()
+        class Hello:
+            name: str = classyclick.Option()
+            """The person to greet."""
+
+            def __call__(self): ...
+
+        result = self.runner.invoke(Hello.click, args=['--help'])
+        self.assertEqual(result.exit_code, 0)
+        self.assertIn('  --name TEXT  The person to greet.', result.output)
+
+    def test_explicit_option_help_overrides_attribute_docstring(self):
+        @classyclick.command()
+        class Hello:
+            name: str = classyclick.Option(help='Explicit help')
+            """The person to greet."""
+
+            def __call__(self): ...
+
+        result = self.runner.invoke(Hello.click, args=['--help'])
+        self.assertEqual(result.exit_code, 0)
+        self.assertIn('  --name TEXT  Explicit help', result.output)
+        self.assertNotIn('The person to greet.', result.output)

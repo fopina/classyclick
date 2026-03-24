@@ -16,6 +16,7 @@ def _get_base_group_config(cls):
 
 def _build_click_class_command(cls, *, is_group=False):
     doc = cls.__doc__
+    utils.apply_field_help_from_attribute_docstrings(cls)
     utils.strictly_typed_dataclass(cls)
 
     def func(*args, **kwargs):

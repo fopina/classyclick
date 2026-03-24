@@ -208,6 +208,17 @@ Options:
 """,
         )
 
+    def test_option_help_from_attribute_docstring(self):
+        class Hello(classyclick.Command):
+            name: str = classyclick.Option()
+            """The person to greet."""
+
+            def __call__(self): ...
+
+        result = self.runner.invoke(Hello.click, args=['--help'])
+        self.assertEqual(result.exit_code, 0)
+        self.assertIn('  --name TEXT  The person to greet.', result.output)
+
     def test_subclassing(self):
         class Hello(classyclick.Command):
             """command one"""

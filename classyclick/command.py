@@ -41,6 +41,7 @@ def command(cls=None, *, group=None, **click_kwargs) -> Callable[[T], Union[T, C
         # convert camel to snake as function name and let click itself convert to kebab (and trim whatever it wants) if custom 'name' is not specified
         func.__name__ = utils.camel_snake(kls.__name__)
 
+        utils.apply_field_help_from_attribute_docstrings(kls)
         # at the end so it doesn't affect __doc__ or others
         utils.strictly_typed_dataclass(kls)
 
