@@ -58,6 +58,21 @@ Usage: cli hello [OPTIONS] NAME
 
         self.assertEqual(Cli.click.name, 'cli')
 
+    def test_group_help_without_docstring_is_empty(self):
+        class Cli(classyclick.Group): ...
+
+        result = self.runner.invoke(Cli.click, args=['--help'])
+        self.assertEqual(result.exit_code, 0)
+        self.assertEqual(
+            result.output,
+            """\
+Usage: cli [OPTIONS] COMMAND [ARGS]...
+
+Options:
+  --help  Show this message and exit.
+""",
+        )
+
     def test_group_fields_and_subcommands(self):
         class Cli(classyclick.Group):
             """test group"""
