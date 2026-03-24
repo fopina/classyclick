@@ -85,6 +85,11 @@ class Command:
         if cls is Command:
             return
 
+        # Internal helper bases can opt out of immediate click wiring while still
+        # letting concrete subclasses inherit the normal Command behavior.
+        if cls.__dict__.get('__classyclick_skip_build__', False):
+            return
+
         if '__call__' not in cls.__dict__ and not any(
             '__call__' in getattr(base, '__dict__', {}) for base in cls.__mro__[1:] if base is not Command
         ):
