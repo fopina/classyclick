@@ -34,6 +34,7 @@ dev = [
     "ruff",
     "twine",
     "readme-example-tester",
+    "mkdocs>=1.6.1",
 ]
 
 [project.urls]
