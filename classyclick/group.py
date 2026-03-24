@@ -80,6 +80,11 @@ class Group:
         if cls is Group:
             return
 
+        # Internal helper bases can carry bound group config without registering
+        # themselves as real click groups.
+        if cls.__dict__.get('__classyclick_skip_build__', False):
+            return
+
         cls._build_click_group()
         cls._bind_children()
 
@@ -89,11 +94,24 @@ class Group:
 
     @classmethod
     def _bind_children(cls):
-        class Mixin:
+        class CommandMixin:
             __group_config__ = cls
 
-        cls.Command = Mixin
-        cls.SubGroup = Mixin
+        class SubGroupMixin:
+            __group_config__ = cls
+
+        from .command import Command as BaseCommand
+
+        class Command(CommandMixin, BaseCommand):
+            __classyclick_skip_build__ = True
+
+        class SubGroup(SubGroupMixin, Group):
+            __classyclick_skip_build__ = True
+
+        cls.CommandMixin = CommandMixin
+        cls.SubGroupMixin = SubGroupMixin
+        cls.Command = Command
+        cls.SubGroup = SubGroup
 
     def __call__(self):
         """placeholder as many groups will not need anything"""

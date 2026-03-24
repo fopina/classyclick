@@ -85,7 +85,7 @@ Usage: cli hello [OPTIONS] NAME
         class CLI(classyclick.Group):
             """Shared group help"""
 
-        class Hello(CLI.Command, classyclick.Command):
+        class Hello(CLI.Command):
             """Say hello"""
 
             name: str = classyclick.Argument()
@@ -113,14 +113,30 @@ Commands:
         self.assertEqual(result.exit_code, 0)
         self.assertEqual(result.output, 'Hello John\n')
 
+    def test_group_command_mixin_still_available(self):
+        class CLI(classyclick.Group):
+            """Shared group help"""
+
+        class Hello(CLI.CommandMixin, classyclick.Command):
+            """Say hello"""
+
+            name: str = classyclick.Argument()
+
+            def __call__(self):
+                print(f'Hello {self.name}')
+
+        result = self.runner.invoke(CLI.click, args=['hello', 'John'])
+        self.assertEqual(result.exit_code, 0)
+        self.assertEqual(result.output, 'Hello John\n')
+
     def test_nested_group_uses_base_config_and_command_subclass(self):
         class Cli(classyclick.Group):
             """test group"""
 
-        class SubGroup(Cli.SubGroup, classyclick.Group):
+        class SubGroup(Cli.SubGroup):
             """subgroup"""
 
-        class Status(SubGroup.Command, classyclick.Command):
+        class Status(SubGroup.Command):
             """show status"""
 
             item: str = classyclick.Argument()
