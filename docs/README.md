@@ -4,6 +4,12 @@
 It keeps Click's behavior and parameter model, but moves command state onto an
 instance so helper methods and properties can use `self` directly.
 
+Python's `click` package is excellent, but its decorator-driven style can make
+commands harder to reuse outside the CLI entrypoint. Re-defining commands as
+dataclasses gives you regular Python objects that can still be invoked through
+Click, while also making non-Click use and command composition much more
+natural.
+
 The documentation is organized with the same split that works well in projects
 like Flask: start with the guide if you want to learn the library, then move to
 the API reference when you need exact behavior.
@@ -67,4 +73,5 @@ forwarded straight to Click, while the library adds a class-centric layer on top
 
 If you already know Click, you can treat `classyclick` as a thin adapter that
 lets you structure larger commands around methods and properties instead of
-passing the same values between functions.
+passing the same values between functions. That pays off most when you want to
+reuse command logic outside Click or compose one command from another.
