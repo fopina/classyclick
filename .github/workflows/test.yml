@@ -37,7 +37,8 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ['3.9', '3.12', '3.13']
+        # 3.10 added as there are "unique" issues in it (such as Path requiring str() for many core methods)
+        python-version: ['3.9', '3.10', '3.12', '3.13']
         click-version: ['==7.0', '>8']
     steps:
       - name: Checkout

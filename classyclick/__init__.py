@@ -1,3 +1,4 @@
+from . import helpers
 from .__version__ import __version__, version
 from .command import Command, command
 from .fields import (
@@ -30,4 +31,5 @@ __all__ = [
     'Option',
     'Command',
     'Group',
+    'helpers',
 ]
