@@ -170,6 +170,32 @@ Options:
 """,
         )
 
+    def test_inherited_docstring_used_for_help(self):
+        class BaseHello:
+            """shared command help"""
+
+            def __call__(self): ...
+
+        @classyclick.command()
+        class Hello(BaseHello):
+            name: str = classyclick.Argument()
+
+            def __call__(self): ...
+
+        result = self.runner.invoke(Hello.click, args=['--help'])
+        self.assertEqual(result.exit_code, 0)
+        self.assertEqual(
+            result.output,
+            """\
+Usage: hello [OPTIONS] NAME
+
+  shared command help
+
+Options:
+  --help  Show this message and exit.
+""",
+        )
+
     def test_group(self):
         @click.group
         def cli(): ...

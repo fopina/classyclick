@@ -138,7 +138,7 @@ class AnotherSync:
 
 Same as `click.command`, you can choose a command `name` or allow it to derive it from class name (camel to kebab, instead of click's snake to kebab).
 
-It will also forward class `__doc__` to click to be used as description if not specified as keyword arg.
+It will also forward the class docstring to click using `inspect.getdoc`, so inherited descriptions are used if not specified as keyword arg.
 
 ### classyclick.Option
 

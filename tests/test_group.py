@@ -73,6 +73,27 @@ Options:
 """,
         )
 
+    def test_group_inherited_docstring_used_for_help(self):
+        class BaseCli(classyclick.Group):
+            """shared group help"""
+
+        class Cli(BaseCli):
+            pass
+
+        result = self.runner.invoke(Cli.click, args=['--help'])
+        self.assertEqual(result.exit_code, 0)
+        self.assertEqual(
+            result.output,
+            """\
+Usage: cli [OPTIONS] COMMAND [ARGS]...
+
+  shared group help
+
+Options:
+  --help  Show this message and exit.
+""",
+        )
+
     def test_group_fields_and_subcommands(self):
         class Cli(classyclick.Group):
             """test group"""

@@ -1,3 +1,4 @@
+import inspect
 import re
 from dataclasses import dataclass
 
@@ -30,6 +31,23 @@ def snake_kebab(snake_value):
     """
     # wrapping simple logic just in case exceptions come along
     return snake_value.replace('_', '-')
+
+
+def get_inherited_doc(kls):
+    doc = inspect.getdoc(kls)
+    if doc is None:
+        return None
+
+    if kls.__doc__ is not None:
+        return doc
+
+    from .command import Command
+    from .group import Group
+
+    if doc in (Command.__doc__, Group.__doc__):
+        return None
+
+    return doc
 
 
 def strictly_typed_dataclass(kls):
