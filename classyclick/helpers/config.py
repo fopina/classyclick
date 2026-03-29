@@ -45,14 +45,35 @@ def merge_dicts(base: dict, override: dict) -> dict:
 
 @dataclass
 class ConfigFileMixin:
-    CONFIG_DEFAULT_PATH = Path(user_config_dir('defectdojo-generated-api')) / 'config.toml'
+    CONFIG_DEFAULT_NAME = None
+    CONFIG_DEFAULT_PATH = Path(user_config_dir(CONFIG_DEFAULT_NAME)) / 'config.toml'
     CONFIG_EXAMPLE_PATH = None
 
-    config: Path = classyclick.Option(help='Path to the configuration file', show_default=str(CONFIG_DEFAULT_PATH))
+    # do not set default now
+    config: Path = classyclick.Option(help='Path to the configuration file')
     env: str = classyclick.Option(
         '-e', help='Environment to use for the command (as many can be specified in config.toml)'
     )
     ctx: classyclick.Context = classyclick.Context()
+
+    def __init_subclass__(cls):
+        if cls.CONFIG_DEFAULT_PATH == ConfigFileMixin.CONFIG_DEFAULT_PATH:
+            if cls.CONFIG_DEFAULT_NAME is None:
+                cls.CONFIG_DEFAULT_NAME = cls.__module__.split('.')[0]
+            cls.CONFIG_DEFAULT_PATH = Path(user_config_dir(cls.CONFIG_DEFAULT_NAME)) / 'config.toml'
+        # override show_default now we all re-calculated
+        cls.__dataclass_fields__['config'].attrs['show_default'] = str(cls.CONFIG_DEFAULT_PATH)
+
+        if cls.CONFIG_EXAMPLE_PATH is None:
+            raise ValueError(
+                'CONFIG_EXAMPLE_PATH is not defined. It is strongly recommended to include an example config.toml in your package. If you do not want to include one, set this attribute to False'
+            )
+        if cls.CONFIG_EXAMPLE_PATH is not False:
+            if not isinstance(cls.CONFIG_EXAMPLE_PATH, Path):
+                raise ValueError('CONFIG_EXAMPLE_PATH must be of type Path')
+            if not cls.CONFIG_EXAMPLE_PATH.exists():
+                raise ValueError(f'CONFIG_EXAMPLE_PATH path {cls.CONFIG_EXAMPLE_PATH} does not exist')
+        super().__init_subclass__()
 
     @classmethod
     def ensure_config_file(cls, config_path: Optional[Path]) -> Path:
