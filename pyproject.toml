@@ -23,7 +23,12 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
 ]
 # typing-extensions for deprecated (< 3.13) and dataclass_transform (< 3.11)
-dependencies = ["click>=7", "typing-extensions>=4.12.2; python_version < '3.13'"]
+dependencies = [
+    "click>=7",
+    "typing-extensions>=4.12.2; python_version < '3.13'",
+    "tomli; python_version < '3.11'",
+    "platformdirs>=4.4.0",
+]
 
 [dependency-groups]
 dev = [

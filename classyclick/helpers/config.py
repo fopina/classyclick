@@ -5,10 +5,93 @@ import os
 import shlex
 import shutil
 import subprocess
+from dataclasses import MISSING, dataclass
+from pathlib import Path
+from typing import Optional
 
 import click
+from platformdirs import user_config_dir
 
 import classyclick
+from classyclick.fields import _Field
+
+try:
+    # Python 3.11+
+    import tomllib
+except ModuleNotFoundError:
+    # Python < 3.11
+    import tomli as tomllib  # type: ignore
+
+
+def merge_dicts(base: dict, override: dict) -> dict:
+    """
+    To merge two Python dictionaries where:
+    * nested dictionaries should merge recursively
+    * lists and other values should be replaced entirely
+
+    by ChatGPT
+    """
+    result = base.copy()
+    for key, value in override.items():
+        if key in result:
+            if isinstance(result[key], dict) and isinstance(value, dict):
+                result[key] = merge_dicts(result[key], value)
+            else:
+                result[key] = value
+        else:
+            result[key] = value
+    return result
+
+
+@dataclass
+class ConfigFileMixin:
+    CONFIG_DEFAULT_PATH = Path(user_config_dir('defectdojo-generated-api')) / 'config.toml'
+    CONFIG_EXAMPLE_PATH = None
+
+    config: Path = classyclick.Option(help='Path to the configuration file', show_default=str(CONFIG_DEFAULT_PATH))
+    env: str = classyclick.Option(
+        '-e', help='Environment to use for the command (as many can be specified in config.toml)'
+    )
+
+    @classmethod
+    def ensure_config_file(cls, config_path: Optional[Path]) -> Path:
+        config_path = config_path or cls.CONFIG_DEFAULT_PATH
+        if not config_path.exists() and cls.CONFIG_EXAMPLE_PATH is not None:
+            config_path.parent.mkdir(parents=True, exist_ok=True)
+            config_path.write_text(Path(cls.CONFIG_EXAMPLE_PATH).read_text())
+            print(f'Info: No configuration file found at {config_path}, a sample config has been placed there.')
+
+        return config_path
+
+    @classmethod
+    def load_config_data(cls, config_path: Path) -> dict:
+        with config_path.open('rb') as f:
+            return tomllib.load(f)
+
+    def load_config(self):
+        self.config = type(self).ensure_config_file(self.config)
+        config_data = type(self).load_config_data(self.config)
+
+        if self.env is None:
+            self.env = config_data.get('default_env')
+
+        # allow empty string to choose root environment when "default_env" is set to something else
+        if self.env:
+            if self.env not in config_data.get('env', {}):
+                raise click.ClickException(f'Environment "{self.env}" not found in {self.config}')
+            env_config = config_data['env'][self.env]
+            config_data = merge_dicts(config_data, env_config)
+
+        for field_name in dir(self.__class__):
+            field = getattr(self.__class__, field_name, None)
+            if not isinstance(field, _Field) or field_name not in config_data:
+                continue
+
+            current_value = getattr(self, field_name, MISSING)
+            default_value = field.default
+            if current_value is None or (default_value is not MISSING and current_value == default_value):
+                print(field_name)
+                setattr(self, field_name, config_data[field_name])
 
 
 class ConfigBaseCommand(classyclick.Command):
