@@ -1,7 +1,9 @@
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from unittest.mock import patch
 
 import click
+from click.testing import CliRunner
 
 import classyclick
 from classyclick.helpers.config import ConfigBaseCommand, ConfigFileMixin, merge_dicts
@@ -183,7 +185,34 @@ class TestConfigFileMixin(BaseCase):
         config_param = next(param for param in CustomConfigCommand.click.params if param.name == 'config')
         self.assertEqual(config_param.show_default, str(Path('/tmp/custom-config.toml')))
 
+    def test_config_default_name_is_reflected_in_help_output(self):
+        with patch('classyclick.helpers.config.user_config_dir', side_effect=lambda x: f'/tmp/app-config/{x}'):
+
+            class CustomConfigCommand(ConfigFileMixin, classyclick.Command):
+                CONFIG_DEFAULT_NAME = 'demo-app'
+                CONFIG_EXAMPLE_PATH = False
+
+                def __call__(self): ...
+
+        result = CliRunner().invoke(CustomConfigCommand.click, ['--help'], terminal_width=200)
+
+        self.assertEqual(result.exit_code, 0)
+        self.assertIn('/tmp/app-config/demo-app/config.toml', result.output)
+
+    def test_custom_config_default_path_is_reflected_in_help_output(self):
+        class CustomConfigCommand(ConfigFileMixin, classyclick.Command):
+            CONFIG_DEFAULT_PATH = Path('/tmp/custom-config.toml')
+            CONFIG_EXAMPLE_PATH = False
+
+            def __call__(self): ...
+
+        result = CliRunner().invoke(CustomConfigCommand.click, ['--help'], terminal_width=200)
+
+        self.assertEqual(result.exit_code, 0)
+        self.assertIn('/tmp/custom-config.toml', result.output)
+
     def test_subclass_requires_explicit_example_path_configuration(self):
         with self.assertRaisesRegex(ValueError, 'CONFIG_EXAMPLE_PATH is not defined'):
+
             class CustomConfigMixin(ConfigFileMixin):
                 CONFIG_DEFAULT_PATH = Path('/tmp/custom-config.toml')
