@@ -5,7 +5,7 @@ import os
 import shlex
 import shutil
 import subprocess
-from dataclasses import MISSING, dataclass
+from dataclasses import MISSING, dataclass, fields
 from pathlib import Path
 from typing import Optional
 
@@ -52,6 +52,7 @@ class ConfigFileMixin:
     env: str = classyclick.Option(
         '-e', help='Environment to use for the command (as many can be specified in config.toml)'
     )
+    ctx: classyclick.Context = classyclick.Context()
 
     @classmethod
     def ensure_config_file(cls, config_path: Optional[Path]) -> Path:
@@ -82,16 +83,24 @@ class ConfigFileMixin:
             env_config = config_data['env'][self.env]
             config_data = merge_dicts(config_data, env_config)
 
-        for field_name in dir(self.__class__):
-            field = getattr(self.__class__, field_name, None)
-            if not isinstance(field, _Field) or field_name not in config_data:
+        ignored_fields = {field.name for field in fields(ConfigFileMixin)}
+        for field in fields(self):
+            if field.name in ignored_fields:
+                # these are not sourced from config - and env is matched with default_env above
                 continue
 
-            current_value = getattr(self, field_name, MISSING)
+            if not isinstance(field, _Field) or field.name not in config_data:
+                continue
+
+            current_value = getattr(self, field.name, MISSING)
             default_value = field.default
             if current_value is None or (default_value is not MISSING and current_value == default_value):
-                print(field_name)
-                setattr(self, field_name, config_data[field_name])
+                setattr(self, field.name, config_data[field.name])
+
+        self.ctx.meta['config_path'] = self.config
+        self.ctx.meta['config_data'] = config_data
+        self.ctx.meta['selected_env'] = self.env
+        self.ctx.default_map = config_data
 
 
 class ConfigBaseCommand(classyclick.Command):

@@ -126,7 +126,7 @@ class TestConfigFileMixin(BaseCase):
         self.assertEqual(command.config, Path('/tmp/custom-config.toml'))
 
     def test_load_config_populates_unset_classyclick_fields_from_config(self):
-        class CustomConfigMixin(ConfigFileMixin):
+        class CustomConfigCommand(ConfigFileMixin, classyclick.Command):
             token: str = classyclick.Option(default='default-token')
             username: str = classyclick.Option()
             enabled: bool = classyclick.Option(default=False)
@@ -146,13 +146,17 @@ class TestConfigFileMixin(BaseCase):
                     'retries': 8,
                 }
 
-        command = CustomConfigMixin.__new__(CustomConfigMixin)
-        command.config = None
-        command.env = None
-        command.token = 'default-token'
-        command.username = None
-        command.enabled = False
-        command.retries = 7
+            def __call__(self):
+                return None
+
+        command = CustomConfigCommand(
+            config=None,
+            env=None,
+            token='default-token',
+            username=None,
+            enabled=False,
+            retries=7,
+        )
 
         command.load_config()
 
