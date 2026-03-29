@@ -75,13 +75,14 @@ class TestConfigFileMixin(BaseCase):
     def test_ensure_config_file_uses_class_default_path(self):
         with TemporaryDirectory() as tmpdir:
             default_path = Path(tmpdir) / 'custom.toml'
+            default_path.write_text('already there\n')
 
             class CustomConfigMixin(ConfigFileMixin):
-                DEFAULT_PATH = default_path
-                EXAMPLE_PATH = None
+                CONFIG_DEFAULT_PATH = default_path
+                CONFIG_EXAMPLE_PATH = False
 
             self.assertEqual(CustomConfigMixin.ensure_config_file(None), default_path)
-            self.assertFalse(default_path.exists())
+            self.assertEqual(default_path.read_text(), 'already there\n')
 
     def test_ensure_config_file_copies_example_only_when_configured(self):
         with TemporaryDirectory() as tmpdir:
@@ -90,8 +91,8 @@ class TestConfigFileMixin(BaseCase):
             example_path.write_text('name = "demo"\n')
 
             class CustomConfigMixin(ConfigFileMixin):
-                DEFAULT_PATH = default_path
-                EXAMPLE_PATH = example_path
+                CONFIG_DEFAULT_PATH = default_path
+                CONFIG_EXAMPLE_PATH = example_path
 
             self.assertEqual(CustomConfigMixin.ensure_config_file(None), default_path)
             self.assertEqual(default_path.read_text(), 'name = "demo"\n')
@@ -100,6 +101,8 @@ class TestConfigFileMixin(BaseCase):
         calls = []
 
         class CustomConfigMixin(ConfigFileMixin):
+            CONFIG_EXAMPLE_PATH = False
+
             @classmethod
             def ensure_config_file(cls, config_path):
                 calls.append(('ensure', config_path))
@@ -113,6 +116,7 @@ class TestConfigFileMixin(BaseCase):
         command = CustomConfigMixin.__new__(CustomConfigMixin)
         command.config = None
         command.env = None
+        command.ctx = click.Context(click.Command('test'))
 
         command.load_config()
 
@@ -127,6 +131,7 @@ class TestConfigFileMixin(BaseCase):
 
     def test_load_config_populates_unset_classyclick_fields_from_config(self):
         class CustomConfigCommand(ConfigFileMixin, classyclick.Command):
+            CONFIG_EXAMPLE_PATH = False
             token: str = classyclick.Option(default='default-token')
             username: str = classyclick.Option()
             enabled: bool = classyclick.Option(default=False)
@@ -152,6 +157,7 @@ class TestConfigFileMixin(BaseCase):
         command = CustomConfigCommand(
             config=None,
             env=None,
+            ctx=click.Context(CustomConfigCommand.click),
             token='default-token',
             username=None,
             enabled=False,
@@ -167,8 +173,8 @@ class TestConfigFileMixin(BaseCase):
 
     def test_subclass_default_path_updates_click_show_default(self):
         class CustomConfigCommand(ConfigFileMixin, classyclick.Command):
-            DEFAULT_PATH = Path('/tmp/custom-config.toml')
-            EXAMPLE_PATH = None
+            CONFIG_DEFAULT_PATH = Path('/tmp/custom-config.toml')
+            CONFIG_EXAMPLE_PATH = False
             ctx: click.Context = classyclick.Context()
 
             def __call__(self):
@@ -176,3 +182,8 @@ class TestConfigFileMixin(BaseCase):
 
         config_param = next(param for param in CustomConfigCommand.click.params if param.name == 'config')
         self.assertEqual(config_param.show_default, str(Path('/tmp/custom-config.toml')))
+
+    def test_subclass_requires_explicit_example_path_configuration(self):
+        with self.assertRaisesRegex(ValueError, 'CONFIG_EXAMPLE_PATH is not defined'):
+            class CustomConfigMixin(ConfigFileMixin):
+                CONFIG_DEFAULT_PATH = Path('/tmp/custom-config.toml')
