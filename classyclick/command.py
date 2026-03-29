@@ -36,7 +36,7 @@ def command(cls=None, *, group=None, **click_kwargs) -> Callable[[T], Union[T, C
                     kwargs[field_name] = args.pop()
             kls(*args, **kwargs)()
 
-        func.__doc__ = kls.__doc__
+        func.__doc__ = utils.get_inherited_doc(kls)
         # To re-use click logic (https://github.com/pallets/click/blob/fd183b2ced1cb5857784fe7fb22f4982f671f098/src/click/decorators.py#L242)
         # convert camel to snake as function name and let click itself convert to kebab (and trim whatever it wants) if custom 'name' is not specified
         func.__name__ = utils.camel_snake(kls.__name__)

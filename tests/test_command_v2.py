@@ -182,6 +182,31 @@ Options:
 """,
         )
 
+    def test_inherited_docstring_used_for_help(self):
+        class BaseHello(classyclick.Command):
+            """shared command help"""
+
+            name: str = classyclick.Argument()
+
+            def __call__(self): ...
+
+        class Hello(BaseHello):
+            pass
+
+        result = self.runner.invoke(Hello.click, args=['--help'])
+        self.assertEqual(result.exit_code, 0)
+        self.assertEqual(
+            result.output,
+            """\
+Usage: hello [OPTIONS] NAME
+
+  shared command help
+
+Options:
+  --help  Show this message and exit.
+""",
+        )
+
     def test_config_supports_click_kwargs(self):
         class Hello(classyclick.Command):
             """test command"""

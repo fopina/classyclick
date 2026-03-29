@@ -1,4 +1,3 @@
-from . import helpers
 from .__version__ import __version__, version
 from .command import Command, command
 from .fields import (
@@ -14,6 +13,8 @@ from .fields import (
     option,
 )
 from .group import Group
+
+from . import helpers  # isort: skip - this needs to be after Command as it depends on it
 
 __all__ = [
     '__version__',
