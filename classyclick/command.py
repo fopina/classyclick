@@ -76,8 +76,16 @@ class Command:
     """
 
     class Config:
-        def __init__(self, *, name: str = None, help: str = None, group: 'click.Group' = None, **kwargs):
-            self.__dict__.update(name=name, help=help, group=group, **kwargs)
+        def __init__(
+            self,
+            *,
+            name: str = None,
+            help: str = None,
+            group: 'click.Group' = None,
+            decorators=None,
+            **kwargs,
+        ):
+            self.__dict__.update(name=name, help=help, group=group, decorators=decorators, **kwargs)
 
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
