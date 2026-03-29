@@ -1,5 +1,11 @@
 [build-system]
-requires = ["setuptools>=61.0.0,<69.3.0", "typing-extensions>=4.12.2", "click", "platformdirs>=4.4.0"]
+requires = [
+    "setuptools>=61.0.0,<69.3.0",
+    "click>=7",
+    "typing-extensions>=4.12.2; python_version < '3.13'",
+    "tomli; python_version < '3.11'",
+    "platformdirs>=4.4.0",
+]
 build-backend = "setuptools.build_meta"
 
 [project]
