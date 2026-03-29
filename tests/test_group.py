@@ -94,6 +94,20 @@ Options:
 """,
         )
 
+    def test_group_config_supports_extra_click_decorators(self):
+        class Cli(classyclick.Group):
+            __config__ = classyclick.Group.Config(
+                decorators=click.version_option(version='2.3.4', message='%(version)s'),
+            )
+
+        help_result = self.runner.invoke(Cli.click, args=['--help'])
+        self.assertEqual(help_result.exit_code, 0)
+        self.assertIn('--version  Show the version and exit.', help_result.output)
+
+        version_result = self.runner.invoke(Cli.click, args=['--version'])
+        self.assertEqual(version_result.exit_code, 0)
+        self.assertEqual(version_result.output, '2.3.4\n')
+
     def test_group_fields_and_subcommands(self):
         class Cli(classyclick.Group):
             """test group"""

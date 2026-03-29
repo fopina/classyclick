@@ -14,6 +14,14 @@ def _get_base_group_config(cls):
     return None
 
 
+def _normalize_click_decorators(decorators):
+    if decorators is None:
+        return ()
+    if callable(decorators):
+        return (decorators,)
+    return tuple(decorators)
+
+
 def _build_click_class_command(cls, *, is_group=False):
     doc = utils.get_inherited_doc(cls)
     utils.strictly_typed_dataclass(cls)
@@ -43,6 +51,8 @@ def _build_click_class_command(cls, *, is_group=False):
             if key and key not in click_kwargs:
                 click_kwargs[key] = value
 
+    click_decorators = _normalize_click_decorators(click_kwargs.pop('decorators', None))
+
     click_group = click_kwargs.pop('group', None)
     if click_group is None:
         click_group = _get_base_group_config(cls)
@@ -55,6 +65,8 @@ def _build_click_class_command(cls, *, is_group=False):
         cls.__command__ = click_group.group(**click_kwargs)(func)
     else:
         cls.__command__ = click_group.command(**click_kwargs)(func)
+    for decorator in click_decorators:
+        cls.__command__ = decorator(cls.__command__)
     cls.click = cls.__command__
 
 
@@ -72,8 +84,8 @@ class Group:
     """
 
     class Config:
-        def __init__(self, *, name: str = None, help: str = None, **kwargs):
-            self.__dict__.update(name=name, help=help, **kwargs)
+        def __init__(self, *, name: str = None, help: str = None, decorators=None, **kwargs):
+            self.__dict__.update(name=name, help=help, decorators=decorators, **kwargs)
 
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)

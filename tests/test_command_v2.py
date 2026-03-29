@@ -1,3 +1,4 @@
+import click
 from click.testing import CliRunner
 
 import classyclick
@@ -232,6 +233,22 @@ Options:
   --help         Show this message and exit.
 """,
         )
+
+    def test_config_supports_extra_click_decorators(self):
+        class Hello(classyclick.Command):
+            __config__ = classyclick.Command.Config(
+                decorators=click.version_option(version='1.2.3', message='%(version)s'),
+            )
+
+            def __call__(self): ...
+
+        help_result = self.runner.invoke(Hello.click, args=['--help'])
+        self.assertEqual(help_result.exit_code, 0)
+        self.assertIn('--version  Show the version and exit.', help_result.output)
+
+        version_result = self.runner.invoke(Hello.click, args=['--version'])
+        self.assertEqual(version_result.exit_code, 0)
+        self.assertEqual(version_result.output, '1.2.3\n')
 
     def test_subclassing(self):
         class Hello(classyclick.Command):
