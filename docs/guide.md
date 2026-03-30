@@ -3,31 +3,10 @@
 This guide focuses on how `classyclick` is meant to be used in application code.
 For exact signatures and lower-level details, see the [API Reference](api.md).
 
-## Two ways to define commands
+## Define commands with classes
 
-`classyclick` supports two styles:
-
-- Decorate a plain class with `@classyclick.command()`
-- Subclass `classyclick.Command`
-
-The decorator style is explicit and mirrors Click:
-
-```python
-import click
-
-import classyclick
-
-
-@classyclick.command()
-class Hello:
-    name: str = classyclick.Option(prompt='Your name')
-
-    def __call__(self):
-        click.echo(f'Hello, {self.name}!')
-```
-
-The base-class style wires the Click command automatically when the subclass is
-created:
+Subclass `classyclick.Command` and implement `__call__()`. The Click command is
+built automatically when the class is created:
 
 ```python
 import click
@@ -42,7 +21,7 @@ class Hello(Command):
         click.echo(f'Hello, {self.name}!')
 ```
 
-In either case, the generated Click command is available as `Hello.click`.
+The generated Click command is available as `Hello.click`.
 
 ## How fields become Click parameters
 
@@ -150,17 +129,7 @@ By default, `classyclick` derives the Click callback name from the class name:
 The class docstring becomes the command help text unless you provide `help=`
 explicitly.
 
-You can pass normal Click configuration in two ways:
-
-### On the decorator
-
-```python
-@classyclick.command(name='hello-there', help='Friendly greeting command.')
-class Hello:
-    ...
-```
-
-### On `Command.Config`
+You can pass normal Click configuration on `Command.Config`:
 
 ```python
 from classyclick import Command
@@ -219,17 +188,3 @@ still apply:
 
 If a class contains a `classyclick` field without a type annotation,
 `strictly_typed_dataclass()` raises a `TypeError`.
-
-## Deprecated lowercase helpers
-
-The lowercase helpers are still available:
-
-- `classyclick.option()`
-- `classyclick.argument()`
-- `classyclick.context()`
-- `classyclick.context_obj()`
-- `classyclick.context_meta()`
-
-They return the same field objects as the capitalized classes, but they are
-marked deprecated in the source. Prefer `Option`, `Argument`, `Context`,
-`ContextObj`, and `ContextMeta` in new code.

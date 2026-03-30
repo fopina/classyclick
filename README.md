@@ -14,6 +14,10 @@ Class-based definitions of click commands
 pip install classyclick
 ```
 
+> Deprecated decorators and lowercase helpers were removed in `v1.0.0`. If
+> you're using an older release, see the
+> [`0.11.0` documentation](https://classyclick.readthedocs.io/en/0.11.0/).
+
 ## A Simple Example
 
 <!-- example-id: tests/cli_hello_simple.py -->

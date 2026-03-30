@@ -9,11 +9,9 @@ The top-level `classyclick` package re-exports the main public API from
 `classyclick.__init__`:
 
 - `__version__`, `version`
-- `command`
 - `Command`
 - `Group`
 - `Option`, `Argument`, `Context`, `ContextObj`, `ContextMeta`
-- `option`, `argument`, `context`, `context_obj`, `context_meta`
 
 Importing from the package root is the intended user-facing style.
 
@@ -28,38 +26,9 @@ String aliases for the installed package version.
 Tuple forms derived from `version.split('.')`. These exist in the module, but
 only the string versions are exported through `__all__`.
 
-## `classyclick.command`
-
-### `command(cls=None, *, group=None, **click_kwargs)`
-
-Decorator that turns a class into a Click command.
-
-Behavior:
-
-- validates that the decorated object is a class
-- converts the class to a dataclass with strict type checking for `classyclick`
-  fields
-- creates a wrapper callback that instantiates the class and calls its
-  `__call__()` method
-- applies every field object in reverse declaration order so Click sees
-  parameters in the expected order
-- registers the callback with either the provided `group` or plain `click`
-- stores the generated `click.Command` on the class as `.click`
-
-Use this when you want Click's decorator-style ergonomics but prefer to keep
-implementation state on a class instance.
-
-### `Clickable`
-
-`typing.Protocol` used for type hints. It describes an object with a `.click`
-attribute containing the generated `click.Command`.
-
-This is not a runtime feature; it exists to help type checkers understand what
-the decorator returns.
-
 ### `Command`
 
-Base class for defining commands without using the `@command()` decorator.
+Base class for defining commands.
 
 Key behavior:
 
@@ -169,19 +138,6 @@ Injects `click.Context.meta[key]` using `click.decorators.pass_meta_key`.
 
 Unlike `Context` and `ContextObj`, this is required by default because Click
 raises `KeyError` when the key is missing.
-
-### Deprecated helper functions
-
-These helpers create the corresponding field objects and are marked deprecated in
-the source:
-
-- `option(*param_decls, default_parameter=True, **attrs)` -> `Option`
-- `argument(*, type=None, **attrs)` -> `Argument`
-- `context()` -> `Context`
-- `context_obj()` -> `ContextObj`
-- `context_meta(key, **attrs)` -> `ContextMeta`
-
-Prefer the capitalized class names in new code.
 
 ### `_Field`
 
