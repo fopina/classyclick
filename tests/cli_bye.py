@@ -9,8 +9,6 @@ sys.path.append(str(Path(__file__).parent.parent))
 import click
 from cli_hello import Hello
 
-import classyclick
-
 
 class Bye(Hello):
     """Simple program that says bye to NAME for a total of COUNT times."""
@@ -22,18 +20,6 @@ class Bye(Hello):
 
 # README ---
 
-from cli_hello import PlainHello
-
-
-class PlainBye(PlainHello):
-    """Simple program that says bye to NAME for a total of COUNT times."""
-
-    count: int = classyclick.Option(default=1, help='Number of greetings.')
-
-    def __call__(self):
-        for _ in range(self.count):
-            click.echo(f'Bye, {self.name}!')
-
 
 if __name__ == '__main__':
-    PlainBye.click()
+    Bye.click()
