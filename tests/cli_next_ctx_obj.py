@@ -25,8 +25,6 @@ class Next(NextGroup.Command):
 
 # README ---
 
-next_group = NextGroup.click
-
 
 if __name__ == '__main__':
     NextGroup.click()

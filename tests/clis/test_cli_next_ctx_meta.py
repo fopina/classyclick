@@ -8,8 +8,8 @@ class Test(CliTestCase, BaseCase):
         if self.click_version < (8, 0):
             self.skipTest('pass_meta_key requires click 8.0')
 
-        from ..cli_next_ctx_meta import next_group_meta
+        from ..cli_next_ctx_meta import NextGroupMeta
 
-        result = self.invoker(next_group_meta, ['next', '3'])
+        result = self.invoker(NextGroupMeta.click, ['next', '3'])
 
         self.assertEqual(result.output, '8\n')

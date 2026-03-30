@@ -30,8 +30,6 @@ class Next(NextGroupMeta.Command):
 
 # README ---
 
-next_group_meta = NextGroupMeta.click
-
 
 if __name__ == '__main__':
     NextGroupMeta.click()
