@@ -310,8 +310,6 @@ As example, if we wanted a `Bye` command just like the `Hello` example above, bu
 import click
 from cli_hello import Hello
 
-import classyclick
-
 
 class Bye(Hello):
     """Simple program that says bye to NAME for a total of COUNT times."""
