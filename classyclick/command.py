@@ -1,9 +1,8 @@
-from dataclasses import fields
 import click
 
-from .group import _build_click_class_command
 from . import utils
 from .fields import Argument, Context, ContextMeta, ContextObj, Option
+from .group import _build_click_class_command
 
 
 @utils.dataclass_transform(field_specifiers=(Option, Argument, Context, ContextObj, ContextMeta))
