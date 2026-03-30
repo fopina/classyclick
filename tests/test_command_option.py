@@ -6,8 +6,7 @@ from tests import BaseCase
 
 class Test(BaseCase):
     def test_option(self):
-        @classyclick.command()
-        class Hello:
+        class Hello(classyclick.Command):
             name: str = classyclick.Option(help='Name')
 
             def __call__(self):
@@ -19,8 +18,7 @@ class Test(BaseCase):
         self.assertEqual(result.output, 'Hello, Peter\n')
 
     def test_type_inference_option(self):
-        @classyclick.command()
-        class Sum:
+        class Sum(classyclick.Command):
             a: int = classyclick.Option()
             b: int = classyclick.Option()
 
@@ -34,8 +32,7 @@ class Test(BaseCase):
 
     def test_cannot_choose_name(self):
         def _a():
-            @classyclick.command()
-            class Sum:
+            class Sum(classyclick.Command):
                 a: int = classyclick.Option('arc')
 
                 def __call__(self): ...
@@ -43,8 +40,7 @@ class Test(BaseCase):
         self.assertRaisesRegex(TypeError, 'sum option a: do not specify a name, it is already added', _a)
 
     def test_no_default_parameter(self):
-        @classyclick.command()
-        class DP:
+        class DP(classyclick.Command):
             name: str = classyclick.Option()
             extra: str = classyclick.Option('--xtra', default_parameter=False)
 
@@ -65,8 +61,7 @@ class Test(BaseCase):
     def test_type_bool(self):
         """test implicit is_flag=True for type bool"""
 
-        @classyclick.command()
-        class DP:
+        class DP(classyclick.Command):
             greet: bool = classyclick.Option()
             other: bool = classyclick.Option(is_flag=False)
 
@@ -93,8 +88,7 @@ class Test(BaseCase):
     def test_type_list_multiple(self):
         """test click type is properly set to X when using field type list[X]"""
 
-        @classyclick.command()
-        class DP:
+        class DP(classyclick.Command):
             names: list[str] = classyclick.Option('--name', default_parameter=False, metavar='NAME', multiple=True)
 
             def __call__(self):
@@ -114,8 +108,7 @@ class Test(BaseCase):
     def test_type_list_nargs(self):
         """test click type is properly set to X when using field type list[X]"""
 
-        @classyclick.command()
-        class DP:
+        class DP(classyclick.Command):
             names: list[str] = classyclick.Option('--name', metavar='NAME', default_parameter=False, nargs=2)
 
             def __call__(self):

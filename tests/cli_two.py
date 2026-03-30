@@ -10,8 +10,7 @@ import click
 import classyclick
 
 
-@classyclick.command()
-class Hello:
+class Hello(classyclick.Command):
     """Simple program that DOES NOT greet NAME for a total of COUNT times BECAUSE OF MISSING TYPES."""
 
     name = classyclick.Option(prompt='Your name', help='The person to greet.')

@@ -7,7 +7,7 @@ from typing import Any
 sys.path.append(str(Path(__file__).parent.parent))
 
 import click
-from cli_next_ctx import NextGroup, next_group
+from cli_next_ctx import NextGroup
 
 import classyclick
 
@@ -26,16 +26,5 @@ class Next(NextGroup.Command):
 # README ---
 
 
-@classyclick.command(group=next_group)
-class Next:  # noqa: F811 - remove all these overrides (because of non-reversing demos?) in future PR
-    """Output the next number."""
-
-    your_number: int = classyclick.Argument()
-    the_context: Any = classyclick.ContextObj()
-
-    def __call__(self):
-        click.echo(self.your_number + self.the_context.step_number)
-
-
 if __name__ == '__main__':
-    next_group()
+    NextGroup.click()

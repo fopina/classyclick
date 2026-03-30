@@ -28,9 +28,8 @@
 
 ## Style and conventions
 
-- Follow existing style and let `ruff format` format files.
+- Follow existing style and let `make lint` format files.
 - Use single quotes unless escaped content requires otherwise.
-- Keep max line length at 120.
 - Prefer small, explicit changes in `classyclick/`.
 - Maintain test coverage for behavior changes under `tests/`.
 - Avoid editing generated or ephemeral directories/files:

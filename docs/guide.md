@@ -23,6 +23,10 @@ class Hello(Command):
 
 The generated Click command is available as `Hello.click`.
 
+`classyclick` now only supports class-based declarations. If you are migrating
+from the old `@classyclick.command(...)` style, subclass `Command` and move
+those keyword arguments into `Command.Config(...)`.
+
 ## How fields become Click parameters
 
 `classyclick.Option` and `classyclick.Argument` are dataclass-like field objects.
@@ -141,6 +145,9 @@ class Hello(Command):
 
 `Command.Config` also accepts `group=` so a command can register itself under a
 specific Click group.
+
+It also accepts `decorators=` for additional Click decorators such as
+`click.version_option(...)`.
 
 ## Working with groups
 

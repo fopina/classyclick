@@ -19,7 +19,7 @@ class Test(TestCase):
     def test_hello(self):
         result = self._run_cli('cli_hello.py', ['--name', 'classyclick'])
         self.assertEqual(result.returncode, 0)
-        self.assertIn('Hello, classyclick!', result.stdout)
+        self.assertIn('Hello, kcilcyssalc!', result.stdout)
 
     def test_hello_class(self):
         from ..cli_hello import Hello
@@ -27,6 +27,7 @@ class Test(TestCase):
         obj = Hello(name='classyclick')
         self.assertEqual(obj.name, 'classyclick')
         self.assertEqual(obj.count, 1)
+        self.assertEqual(obj.reversed_name, 'kcilcyssalc')
 
     def test_hello_no_types(self):
         def _a():
@@ -40,7 +41,7 @@ class Test(TestCase):
     def test_bye(self):
         result = self._run_cli('cli_bye.py', ['--name', 'classyclick'])
         self.assertEqual(result.returncode, 0)
-        self.assertIn('Bye, classyclick!', result.stdout)
+        self.assertIn('Bye, kcilcyssalc!', result.stdout)
 
     def test_next(self):
         result = self._run_cli('cli_next.py', ['3'])

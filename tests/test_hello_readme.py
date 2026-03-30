@@ -9,9 +9,3 @@ def test_hello_world():
 
 
 # README ---
-
-
-def test_hello_world():  # noqa: F811 - remove all these overrides (because of non-reversing demos?) in future PR
-    o = Hello('hello', 1)
-    assert o.name == 'hello'
-    assert o.count == 1

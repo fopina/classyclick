@@ -6,4 +6,4 @@ class Test(CliTestCase):
         from ..cli_bye import Bye
 
         result = self.invoker(Bye.click, ['--name', 'classyclick'])
-        self.assertEqual(result.output, 'Bye, classyclick!\n')
+        self.assertEqual(result.output, 'Bye, kcilcyssalc!\n')

@@ -3,72 +3,10 @@ from dataclasses import MISSING
 from dataclasses import Field as DataclassField
 from typing import TYPE_CHECKING, Any, get_args, get_origin
 
-try:
-    from warnings import deprecated
-except (ImportError, AttributeError):
-    # python <3.13
-    from typing_extensions import deprecated
-
 if TYPE_CHECKING:
     from click import Command
 
 from . import utils
-
-
-@deprecated('use Option instead')
-def option(*param_decls: str, default_parameter=True, **attrs: Any) -> 'Option':
-    """
-    Attaches an option to the class field.
-
-    Similar to :meth:`click.option` (see https://click.palletsprojects.com/en/latest/api/#click.Option) decorator, except for `default_parameter`.
-
-    `param_decls` and `attrs` will be forwarded to `click.option`
-    Changes done to these:
-    * An extra parameter to `param_decls` when `default_parameter` is true, based on kebab-case of the field name
-      * If the field (this option is attached to) is named `dry_run`, `default_parameter` will automatically add `--dry-run` to its `param_decls`
-    * Type based type hint, if none is specified
-    * No "name" is allowed, as that's already infered from field.name - that means the only positional arguments allowed are the ones that start with "-"
-    """
-    return Option(*param_decls, default_parameter=default_parameter, **attrs)
-
-
-@deprecated('use Argument instead')
-def argument(*, type=None, **attrs: Any) -> 'Argument':
-    """
-    Attaches an argument to the class field.
-
-    Same goal as :meth:`click.argument` (see https://click.palletsprojects.com/en/latest/api/#click.Argument) decorator,
-    but no parameters are needed: field name is used as name of the argument.
-    """
-    return Argument(type=type, **attrs)
-
-
-@deprecated('use Context instead')
-def context() -> 'Context':
-    """
-    Like :meth:`click.pass_context` (see https://click.palletsprojects.com/en/stable/api/#click.pass_context),
-    this exposes `click.Context` in a command property.
-    """
-    return Context()
-
-
-@deprecated('use ContextObj instead')
-def context_obj() -> 'ContextObj':
-    """
-    Like :meth:`click.pass_obj` (see https://click.palletsprojects.com/en/stable/api/#click.pass_obj),
-    this assigns `click.Context.obj` to a command property, when you only want the user data rather than the whole context.
-    """
-    return ContextObj()
-
-
-@deprecated('use ContextMeta instead')
-def context_meta(key: str, **attrs: Any) -> 'ContextMeta':
-    """
-    Like :meth:`click.pass_meta_key` (see https://click.palletsprojects.com/en/stable/api/#click.decorators.pass_meta_key),
-    this assigns `click.Context.meta[KEY]` to a command property, without handling the whole context.
-    """
-    return ContextMeta(key, **attrs)
-
 
 _EXTRA_DATACLASS_INIT = dict(default_factory=MISSING, init=True, repr=True, hash=None, compare=True, metadata=None)
 if sys.version_info >= (3, 10):

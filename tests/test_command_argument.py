@@ -6,8 +6,7 @@ from tests import BaseCase
 
 class Test(BaseCase):
     def test_argument(self):
-        @classyclick.command()
-        class Hello:
+        class Hello(classyclick.Command):
             name: str = classyclick.Argument()
 
             def __call__(self):
@@ -37,8 +36,7 @@ Options:
         self.assertEqual(result.output, 'Hello, Peter\n')
 
     def test_metavar(self):
-        @classyclick.command()
-        class Hello:
+        class Hello(classyclick.Command):
             name: str = classyclick.Argument(metavar='YOUR_NAME')
 
             def __call__(self):
@@ -63,8 +61,7 @@ Options:
         self.assertEqual(result.output, 'Hello, Peter\n')
 
     def test_type_inference(self):
-        @classyclick.command()
-        class Sum:
+        class Sum(classyclick.Command):
             a: int = classyclick.Argument()
             # bad type hint but the explicit one supersedes, so test still passes
             b: str = classyclick.Argument(type=int)
@@ -78,8 +75,7 @@ Options:
         self.assertEqual(result.output, '3\n')
 
     def test_type_override(self):
-        @classyclick.command()
-        class Sum:
+        class Sum(classyclick.Command):
             a: int = classyclick.Argument()
             # bad type hint but the explicit one supersedes, so test still passes
             b: str = classyclick.Argument(type=int)
@@ -98,8 +94,7 @@ Options:
          - only nargs, multiple=True is not supported in click.argument
         """
 
-        @classyclick.command()
-        class DP:
+        class DP(classyclick.Command):
             names: list[str] = classyclick.Argument(nargs=2)
 
             def __call__(self):

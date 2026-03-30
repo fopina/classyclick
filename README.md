@@ -14,8 +14,8 @@ Class-based definitions of click commands
 pip install classyclick
 ```
 
-> Deprecated decorators and lowercase helpers were removed in `v1.0.0`. If
-> you're using an older release, see the
+> The old decorator-based command declaration and lowercase helpers are no
+> longer supported. If you're using an older release, see the
 > [`0.11.0` documentation](https://classyclick.readthedocs.io/en/0.11.0/).
 
 ## A Simple Example
@@ -149,6 +149,10 @@ class Hello(Greet.Command):
 As with `click.command`, you can choose a command `name` explicitly or let it derive from the class name (camel-case to kebab-case).
 
 The class docstring is forwarded to click using `inspect.getdoc`, so inherited descriptions are used when no explicit help text is configured.
+
+If you were previously using `@classyclick.command(...)`, the class-based
+equivalent is to subclass `classyclick.Command` and move those keyword
+arguments into `classyclick.Command.Config(...)`.
 
 ### classyclick.Option
 
@@ -305,8 +309,6 @@ As example, if we wanted a `Bye` command just like the `Hello` example above, bu
 ```python
 import click
 from cli_hello import Hello
-
-import classyclick
 
 
 class Bye(Hello):

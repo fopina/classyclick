@@ -58,6 +58,7 @@ Constructor parameters:
 - `help`: override the help text that would otherwise come from the class
   docstring
 - `group`: register the command under a specific Click group
+- `decorators`: apply extra decorators to the generated Click command
 - `**kwargs`: forwarded to `click.command()`
 
 ### `Command.__init_subclass__(**kwargs)`
@@ -182,6 +183,7 @@ Constructor parameters:
 
 - `name`: override the generated group name
 - `help`: override the group help text
+- `decorators`: apply extra decorators to the generated Click group
 - `**kwargs`: forwarded to `click.group()`
 
 ### `Group.__init_subclass__(**kwargs)`

@@ -31,17 +31,5 @@ class Hello(classyclick.Command):
 # README ---
 
 
-@classyclick.command()
-class Hello:  # noqa: F811 - remove all these overrides (because of non-reversing demos?) in future PR
-    """Simple program that greets NAME for a total of COUNT times."""
-
-    name: str = classyclick.Option(prompt='Your name', help='The person to greet.')
-    count: int = classyclick.Option('-c', default=1, help='Number of greetings.')
-
-    def __call__(self):
-        for _ in range(self.count):
-            click.echo(f'Hello, {self.name}!')
-
-
 if __name__ == '__main__':
     Hello.click()
