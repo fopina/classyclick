@@ -43,7 +43,7 @@ dev = [
     "pytest-socket",
     "ruff",
     "twine",
-    "readme-example-tester",
+    "readme-example-tester>0.0.1",
     "mkdocs>=1.6.1",
 ]
 
