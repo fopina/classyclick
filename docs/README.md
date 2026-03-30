@@ -16,13 +16,13 @@ the API reference when you need exact behavior.
 
 ## What classyclick provides
 
-- `@classyclick.command()` to turn a class into a `click.Command`
+- `classyclick.Command` and `classyclick.Group` base classes for class-driven
+  command and group definitions
 - `classyclick.Option` and `classyclick.Argument` field objects that map class
   attributes to Click parameters
 - `classyclick.Context`, `classyclick.ContextObj`, and `classyclick.ContextMeta`
   for injecting Click context values onto the command instance
-- `classyclick.Command` and `classyclick.Group` base classes for class-driven
-  command and group definitions without an extra decorator
+- `.click` objects generated automatically from those classes
 
 ## Installation
 
@@ -38,8 +38,7 @@ import click
 import classyclick
 
 
-@classyclick.command()
-class Hello:
+class Hello(classyclick.Command):
     """Simple program that greets NAME for a total of COUNT times."""
 
     name: str = classyclick.Option(prompt='Your name', help='The person to greet.')
