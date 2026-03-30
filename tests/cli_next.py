@@ -11,8 +11,7 @@ import classyclick
 
 
 # README +++
-@classyclick.command()
-class Next:
+class Next(classyclick.Command):
     """Output the next number."""
 
     your_number: int = classyclick.Argument()

@@ -22,9 +22,9 @@ class Test(TestCase):
         self.assertIn('Hello, classyclick!', result.stdout)
 
     def test_hello_class(self):
-        from ..cli_hello import Hello
+        from ..cli_hello import PlainHello
 
-        obj = Hello(name='classyclick')
+        obj = PlainHello(name='classyclick')
         self.assertEqual(obj.name, 'classyclick')
         self.assertEqual(obj.count, 1)
 

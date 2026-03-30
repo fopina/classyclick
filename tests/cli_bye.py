@@ -22,9 +22,10 @@ class Bye(Hello):
 
 # README ---
 
+from cli_hello import PlainHello
 
-@classyclick.command()
-class Bye(Hello):  # noqa: F811 - remove all these overrides (because of non-reversing demos?) in future PR
+
+class PlainBye(PlainHello):
     """Simple program that says bye to NAME for a total of COUNT times."""
 
     count: int = classyclick.Option(default=1, help='Number of greetings.')
@@ -35,4 +36,4 @@ class Bye(Hello):  # noqa: F811 - remove all these overrides (because of non-rev
 
 
 if __name__ == '__main__':
-    Bye.click()
+    PlainBye.click()

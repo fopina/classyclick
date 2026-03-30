@@ -23,8 +23,9 @@ class Test(BaseCase):
         def cli(ctx, repo_home, debug):
             ctx.obj = Repo(repo_home, debug)
 
-        @classyclick.command(group=cli)
-        class Clone:
+        class Clone(classyclick.Command):
+            __config__ = classyclick.Command.Config(group=cli)
+
             src: str = classyclick.Argument()
             dest: str = classyclick.Argument(required=False)
             repo: Repo = classyclick.ContextObj()
@@ -32,8 +33,9 @@ class Test(BaseCase):
             def __call__(self):
                 click.echo(f'Clone from {self.src} to {self.dest} at {self.repo.home}')
 
-        @classyclick.command(group=cli)
-        class Clone2:
+        class Clone2(classyclick.Command):
+            __config__ = classyclick.Command.Config(group=cli)
+
             src: str = classyclick.Argument()
             ctx: Any = classyclick.Context()
             dest: str = classyclick.Argument(required=False)
@@ -65,8 +67,9 @@ class Test(BaseCase):
             ctx.meta['repo'] = repo_home
             ctx.meta['debug'] = debug
 
-        @classyclick.command(group=cli)
-        class Clone:
+        class Clone(classyclick.Command):
+            __config__ = classyclick.Command.Config(group=cli)
+
             repo: str = classyclick.ContextMeta('repo')
             debug: bool = classyclick.ContextMeta('debug')
             src: str = classyclick.Argument()

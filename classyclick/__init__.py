@@ -1,5 +1,5 @@
 from .__version__ import __version__, version
-from .command import Command, command
+from .command import Command
 from .fields import Argument, Context, ContextMeta, ContextObj, Option
 from .group import Group
 
@@ -8,7 +8,6 @@ from . import helpers  # isort: skip - this needs to be after Command as it depe
 __all__ = [
     '__version__',
     'version',
-    'command',
     'Argument',
     'Context',
     'ContextMeta',
