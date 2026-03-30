@@ -11,6 +11,26 @@ import classyclick
 
 
 # README +++
+class NextGroupMeta(classyclick.Group):
+    the_context: click.Context = classyclick.Context()
+
+    def __call__(self):
+        self.the_context.meta['step_number'] = 5
+
+
+class Next(NextGroupMeta.Command):
+    """Output the next number."""
+
+    your_number: int = classyclick.Argument()
+    step_number: int = classyclick.ContextMeta('step_number')
+
+    def __call__(self):
+        click.echo(self.your_number + self.step_number)
+
+
+# README ---
+
+
 @click.group()
 @click.pass_context
 def next_group_meta(ctx):
@@ -27,8 +47,6 @@ class Next:
     def __call__(self):
         click.echo(self.your_number + self.step_number)
 
-
-# README ---
 
 if __name__ == '__main__':
     next_group_meta()

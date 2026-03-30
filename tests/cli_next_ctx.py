@@ -13,6 +13,26 @@ import classyclick
 
 
 # README +++
+class NextGroup(classyclick.Group):
+    the_context: click.Context = classyclick.Context()
+
+    def __call__(self):
+        self.the_context.obj = SimpleNamespace(step_number=4)
+
+
+class Next(NextGroup.Command):
+    """Output the next number."""
+
+    your_number: int = classyclick.Argument()
+    the_context: click.Context = classyclick.Context()
+
+    def __call__(self):
+        click.echo(self.your_number + self.the_context.obj.step_number)
+
+
+# README ---
+
+
 @click.group()
 @click.pass_context
 def next_group(ctx):
@@ -29,8 +49,6 @@ class Next:
     def __call__(self):
         click.echo(self.your_number + self.the_context.obj.step_number)
 
-
-# README ---
 
 if __name__ == '__main__':
     next_group()

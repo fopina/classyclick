@@ -10,8 +10,7 @@ import click
 import classyclick
 
 
-@classyclick.command()
-class Hello:
+class Hello(classyclick.Command):
     """Simple program that greets NAME for a total of COUNT times."""
 
     name: str = classyclick.Option(prompt='Your name', help='The person to greet.')

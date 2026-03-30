@@ -237,6 +237,7 @@ Like [`click.pass_context`](https://click.palletsprojects.com/en/stable/api/#cli
 ```python
 class NextGroup(classyclick.Group):
     the_context: click.Context = classyclick.Context()
+
     def __call__(self):
         self.the_context.obj = SimpleNamespace(step_number=4)
 
@@ -277,7 +278,7 @@ class NextGroupMeta(classyclick.Group):
     the_context: click.Context = classyclick.Context()
 
     def __call__(self):
-       self.the_context.meta['step_number'] = 5
+        self.the_context.meta['step_number'] = 5
 
 
 class Next(NextGroupMeta.Command):

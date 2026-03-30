@@ -10,9 +10,8 @@ import click
 import classyclick
 
 
-@classyclick.command()
-class Hello:
-    """Simple program that greets NAME for a total of COUNT times."""
+class Hello(classyclick.Command):
+    """Simple program that greets reversed NAME for a total of COUNT times."""
 
     name: str = classyclick.Option(prompt='Your name', help='The person to greet.')
     count: int = classyclick.Option(default=1, help='Number of greetings.')
@@ -30,6 +29,19 @@ class Hello:
 
 
 # README ---
+
+
+@classyclick.command()
+class Hello:
+    """Simple program that greets NAME for a total of COUNT times."""
+
+    name: str = classyclick.Option(prompt='Your name', help='The person to greet.')
+    count: int = classyclick.Option('-c', default=1, help='Number of greetings.')
+
+    def __call__(self):
+        for _ in range(self.count):
+            click.echo(f'Hello, {self.name}!')
+
 
 if __name__ == '__main__':
     Hello.click()

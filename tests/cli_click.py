@@ -3,6 +3,32 @@
 
 import click
 
+import classyclick
+
+
+# README +++
+class Greet(classyclick.Group):
+    """Greeting commands."""
+
+    debug: bool = classyclick.Option('--debug/--no-debug')
+
+    def __call__(self):
+        click.echo(f'Debug mode is {"on" if self.debug else "off"}')
+
+
+class Hello(Greet.Command):
+    """Say hello."""
+
+    __config__ = classyclick.Command.Config(group=Greet)
+
+    name: str = classyclick.Option(prompt='Your name')
+
+    def __call__(self):
+        click.echo(f'Hello, {self.name}!')
+
+
+# README ---
+
 
 @click.command()
 @click.argument('src')
