@@ -24,7 +24,7 @@ class Bye(Hello):
 
 
 @classyclick.command()
-class Bye(Hello):
+class Bye(Hello):  # noqa: F811 - remove all these overrides (because of non-reversing demos?) in future PR
     """Simple program that says bye to NAME for a total of COUNT times."""
 
     count: int = classyclick.Option(default=1, help='Number of greetings.')

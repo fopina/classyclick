@@ -32,7 +32,7 @@ class Hello(classyclick.Command):
 
 
 @classyclick.command()
-class Hello:
+class Hello:  # noqa: F811 - remove all these overrides (because of non-reversing demos?) in future PR
     """Simple program that greets NAME for a total of COUNT times."""
 
     name: str = classyclick.Option(prompt='Your name', help='The person to greet.')

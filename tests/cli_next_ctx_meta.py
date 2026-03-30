@@ -38,7 +38,7 @@ def next_group_meta(ctx):
 
 
 @classyclick.command(group=next_group_meta)
-class Next:
+class Next:  # noqa: F811 - remove all these overrides (because of non-reversing demos?) in future PR
     """Output the next number."""
 
     your_number: int = classyclick.Argument()
