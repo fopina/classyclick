@@ -14,6 +14,10 @@ The documentation is organized with the same split that works well in projects
 like Flask: start with the guide if you want to learn the library, then move to
 the API reference when you need exact behavior.
 
+> Deprecated decorators and lowercase helpers were removed in `v1.0.0`. If
+> you're using an older release, see the
+> [`0.11.0` documentation](https://classyclick.readthedocs.io/en/0.11.0/).
+
 ## What classyclick provides
 
 - `classyclick.Command` and `classyclick.Group` base classes for class-driven

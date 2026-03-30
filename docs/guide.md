@@ -188,17 +188,3 @@ still apply:
 
 If a class contains a `classyclick` field without a type annotation,
 `strictly_typed_dataclass()` raises a `TypeError`.
-
-## Lowercase helpers
-
-The lowercase helpers are still available:
-
-- `classyclick.option()`
-- `classyclick.argument()`
-- `classyclick.context()`
-- `classyclick.context_obj()`
-- `classyclick.context_meta()`
-
-They return the same field objects as the capitalized classes, but are kept for
-compatibility. Prefer `Option`, `Argument`, `Context`, `ContextObj`, and
-`ContextMeta` in new code.

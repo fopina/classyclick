@@ -12,8 +12,6 @@ The top-level `classyclick` package re-exports the main public API from
 - `Command`
 - `Group`
 - `Option`, `Argument`, `Context`, `ContextObj`, `ContextMeta`
-- `command`
-- `option`, `argument`, `context`, `context_obj`, `context_meta`
 
 Importing from the package root is the intended user-facing style.
 
@@ -27,8 +25,6 @@ String aliases for the installed package version.
 
 Tuple forms derived from `version.split('.')`. These exist in the module, but
 only the string versions are exported through `__all__`.
-
-## `classyclick.command`
 
 ### `Command`
 
@@ -77,25 +73,6 @@ Class method that delegates to the shared group/command builder in
 `classyclick.group`.
 
 This is effectively an internal extension point.
-
-### `command(cls=None, *, group=None, **click_kwargs)`
-
-Compatibility decorator that turns a class into a Click command.
-
-It follows the same build path as `Command`, including dataclass conversion,
-field processing, callback creation, and storing the generated Click command on
-the class as `.click`.
-
-Prefer subclassing `Command` in new code. This decorator remains useful when
-you need to adapt an existing plain class without changing its base class.
-
-### `Clickable`
-
-`typing.Protocol` used for type hints. It describes an object with a `.click`
-attribute containing the generated `click.Command`.
-
-This is not a runtime feature; it exists to help type checkers understand what
-the decorator returns.
 
 ## `classyclick.fields`
 
@@ -161,19 +138,6 @@ Injects `click.Context.meta[key]` using `click.decorators.pass_meta_key`.
 
 Unlike `Context` and `ContextObj`, this is required by default because Click
 raises `KeyError` when the key is missing.
-
-### Lowercase helper functions
-
-These helpers create the corresponding field objects and are kept for
-compatibility:
-
-- `option(*param_decls, default_parameter=True, **attrs)` -> `Option`
-- `argument(*, type=None, **attrs)` -> `Argument`
-- `context()` -> `Context`
-- `context_obj()` -> `ContextObj`
-- `context_meta(key, **attrs)` -> `ContextMeta`
-
-Prefer the capitalized class names in new code.
 
 ### `_Field`
 
