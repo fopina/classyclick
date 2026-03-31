@@ -51,7 +51,7 @@ def get_inherited_doc(kls):
 
 
 def strictly_typed_dataclass(kls):
-    annotations = getattr(kls, '__annotations__', {})
+    annotations = kls.__dict__.get('__annotations__', {})
     for name, val in kls.__dict__.items():
         if name.startswith('__'):
             continue
@@ -64,7 +64,7 @@ def strictly_typed_dataclass(kls):
 
 
 def _validate_local_field_order(kls):
-    local_annotations = getattr(kls, '__annotations__', {})
+    local_annotations = kls.__dict__.get('__annotations__', {})
     dataclass_fields = kls.__dataclass_fields__
     previous_default = None
     for name in local_annotations:
@@ -105,12 +105,16 @@ def _build_init(kls):
         missing = []
 
         for index, field in enumerate(positional_fields):
+            required_for_init = _field_is_required_for_init(field)
             if index < len(args):
                 value = args[index]
                 if field.name in remaining_kwargs:
                     raise TypeError(f"{kls.__name__}.__init__() got multiple values for argument '{field.name}'")
             elif field.name in remaining_kwargs:
                 value = remaining_kwargs.pop(field.name)
+            elif required_for_init:
+                missing.append(field.name)
+                continue
             elif field.default is not MISSING:
                 value = field.default
             elif field.default_factory is not MISSING:
@@ -122,8 +126,12 @@ def _build_init(kls):
             setattr(self, field.name, value)
 
         for field in init_fields[len(positional_fields) :]:
+            required_for_init = _field_is_required_for_init(field)
             if field.name in remaining_kwargs:
                 value = remaining_kwargs.pop(field.name)
+            elif required_for_init:
+                missing.append(field.name)
+                continue
             elif field.default is not MISSING:
                 value = field.default
             elif field.default_factory is not MISSING:
@@ -168,14 +176,20 @@ def _field_has_python_default(field):
 
 
 def _field_is_required_for_init(field):
-    if _field_has_python_default(field):
-        return False
     if isinstance(field, Option):
-        return field.attrs.get('required', False) or bool(field.attrs.get('prompt'))
+        if field.attrs.get('required', False):
+            return 'default' not in field.attrs and field.default_factory is MISSING
+        if field.attrs.get('prompt') and 'default' not in field.attrs and field.default_factory is MISSING:
+            return True
+        return not _field_has_python_default(field)
     if isinstance(field, Argument):
+        if _field_has_python_default(field):
+            return False
         return field.attrs.get('required', True)
     if isinstance(field, ContextMeta):
         return True
+    if _field_has_python_default(field):
+        return False
     return field.default is MISSING and field.default_factory is MISSING
 
 

@@ -52,6 +52,20 @@ class Test(BaseCase):
         self.assertEqual(obj.name, 'John')
         self.assertEqual(obj.age, 10)
 
+    def test_prompted_option_is_required_for_object_init_without_explicit_default(self):
+        class Hello(classyclick.Command):
+            name: str = classyclick.Option(prompt='Your name')
+            age: int = classyclick.Option(default=10)
+
+            def __call__(self): ...
+
+        with self.assertRaisesRegex(TypeError, "missing 1 required positional argument: 'name'"):
+            Hello()
+
+        obj = Hello('John', 20)
+        self.assertEqual(obj.name, 'John')
+        self.assertEqual(obj.age, 20)
+
     def test_defaults_and_required(self):
         """https://github.com/fopina/classyclick/issues/30"""
 
