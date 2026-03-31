@@ -51,6 +51,9 @@ def get_inherited_doc(kls):
 
 
 def strictly_typed_dataclass(kls):
+    # Python 3.9 can expose inherited annotations via getattr(..., '__annotations__'),
+    # which makes base helper attributes like `click` look like local dataclass fields.
+    # Once Python 3.9 support is dropped, revisit whether this can be simplified.
     annotations = kls.__dict__.get('__annotations__', {})
     for name, val in kls.__dict__.items():
         if name.startswith('__'):
@@ -64,6 +67,8 @@ def strictly_typed_dataclass(kls):
 
 
 def _validate_local_field_order(kls):
+    # Same Python 3.9 compatibility note as in strictly_typed_dataclass():
+    # only consider annotations declared on this class body.
     local_annotations = kls.__dict__.get('__annotations__', {})
     dataclass_fields = kls.__dataclass_fields__
     previous_default = None
@@ -113,6 +118,9 @@ def _build_init(kls):
             elif field.name in remaining_kwargs:
                 value = remaining_kwargs.pop(field.name)
             elif required_for_init:
+                # Keep init-time requiredness separate from dataclass/click defaults.
+                # This is needed for older Python targets because click-backed fields do
+                # not report defaults consistently across 3.9/3.10.
                 missing.append(field.name)
                 continue
             elif field.default is not MISSING:
@@ -130,6 +138,7 @@ def _build_init(kls):
             if field.name in remaining_kwargs:
                 value = remaining_kwargs.pop(field.name)
             elif required_for_init:
+                # Same cross-version compatibility path as above; drop with old-Python support.
                 missing.append(field.name)
                 continue
             elif field.default is not MISSING:
@@ -177,6 +186,10 @@ def _field_has_python_default(field):
 
 def _field_is_required_for_init(field):
     if isinstance(field, Option):
+        # Python 3.9/3.10 differ in how click-derived defaults surface on Option fields:
+        # prompted options may look like they default to None on 3.9, while plain options
+        # can stay as click.UNSET on 3.10. Base requiredness on explicit user intent so this
+        # branch can be removed when older Python compatibility is no longer needed.
         has_explicit_default = 'default' in field.attrs or field.default_factory is not MISSING
         if field.attrs.get('required', False):
             return not has_explicit_default
