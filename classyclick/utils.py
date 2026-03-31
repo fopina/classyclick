@@ -1,8 +1,8 @@
 import inspect
 import re
-from dataclasses import dataclass
+from dataclasses import MISSING, dataclass, fields
 
-from classyclick.fields import _Field
+from classyclick.fields import Argument, ContextMeta, Option, _Field
 
 try:
     from typing import dataclass_transform
@@ -57,7 +57,130 @@ def strictly_typed_dataclass(kls):
             continue
         if name not in annotations and isinstance(val, _Field):
             raise TypeError(f"{kls.__module__}.{kls.__qualname__} is missing type for classy field '{name}'")
-    return dataclass(kls)
+    kls = dataclass(kls, init=False)
+    _validate_local_field_order(kls)
+    _build_init(kls)
+    return kls
+
+
+def _validate_local_field_order(kls):
+    local_annotations = getattr(kls, '__annotations__', {})
+    dataclass_fields = kls.__dataclass_fields__
+    previous_default = None
+    for name in local_annotations:
+        if name.startswith('__'):
+            continue
+
+        value = dataclass_fields[name]
+        has_default = not _field_is_required_for_init(value)
+
+        if has_default:
+            previous_default = name
+        elif previous_default is not None:
+            raise TypeError(f"non-default argument '{name}' follows default argument '{previous_default}'")
+
+
+def _build_init(kls):
+    if '__init__' in kls.__dict__:
+        return
+
+    init_fields = tuple(field for field in fields(kls) if field.init)
+    positional_fields = []
+    for field in init_fields:
+        if getattr(field, 'kw_only', False):
+            continue
+        positional_fields.append(field)
+        if not _field_is_required_for_init(field):
+            break
+    positional_fields = tuple(positional_fields)
+
+    def __init__(self, *args, **kwargs):
+        if len(args) > len(positional_fields):
+            raise TypeError(
+                f'{kls.__name__}.__init__() takes {len(positional_fields) + 1} positional arguments '
+                f'but {len(args) + 1} were given'
+            )
+
+        remaining_kwargs = dict(kwargs)
+        missing = []
+
+        for index, field in enumerate(positional_fields):
+            if index < len(args):
+                value = args[index]
+                if field.name in remaining_kwargs:
+                    raise TypeError(f"{kls.__name__}.__init__() got multiple values for argument '{field.name}'")
+            elif field.name in remaining_kwargs:
+                value = remaining_kwargs.pop(field.name)
+            elif field.default is not MISSING:
+                value = field.default
+            elif field.default_factory is not MISSING:
+                value = field.default_factory()
+            else:
+                missing.append(field.name)
+                continue
+
+            setattr(self, field.name, value)
+
+        for field in init_fields[len(positional_fields) :]:
+            if field.name in remaining_kwargs:
+                value = remaining_kwargs.pop(field.name)
+            elif field.default is not MISSING:
+                value = field.default
+            elif field.default_factory is not MISSING:
+                value = field.default_factory()
+            else:
+                missing.append(field.name)
+                continue
+
+            setattr(self, field.name, value)
+
+        if missing:
+            raise TypeError(_format_missing_message(kls, missing))
+
+        if remaining_kwargs:
+            unexpected = next(iter(remaining_kwargs))
+            raise TypeError(f"{kls.__name__}.__init__() got an unexpected keyword argument '{unexpected}'")
+
+        post_init = getattr(self, '__post_init__', None)
+        if post_init is not None:
+            post_init()
+
+    kls.__init__ = __init__
+
+
+def _format_missing_message(kls, missing):
+    count = len(missing)
+    if count == 1:
+        names = f"'{missing[0]}'"
+    elif count == 2:
+        names = f"'{missing[0]}' and '{missing[1]}'"
+    else:
+        names = ', '.join(f"'{name}'" for name in missing[:-1]) + f", and '{missing[-1]}'"
+    return f'{kls.__name__}.__init__() missing {count} required positional argument{"s" if count != 1 else ""}: {names}'
+
+
+def _field_has_python_default(field):
+    if field.default_factory is not MISSING:
+        return True
+    if field.default is MISSING:
+        return False
+    return not _is_click_unset(field.default)
+
+
+def _field_is_required_for_init(field):
+    if _field_has_python_default(field):
+        return False
+    if isinstance(field, Option):
+        return field.attrs.get('required', False) or bool(field.attrs.get('prompt'))
+    if isinstance(field, Argument):
+        return field.attrs.get('required', True)
+    if isinstance(field, ContextMeta):
+        return True
+    return field.default is MISSING and field.default_factory is MISSING
+
+
+def _is_click_unset(value):
+    return type(value).__module__ == 'click._utils' and type(value).__qualname__ == 'Sentinel' and value.name == 'UNSET'
 
 
 __all__ = ['dataclass_transform']
