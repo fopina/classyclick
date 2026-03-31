@@ -177,11 +177,14 @@ def _field_has_python_default(field):
 
 def _field_is_required_for_init(field):
     if isinstance(field, Option):
+        has_explicit_default = 'default' in field.attrs or field.default_factory is not MISSING
         if field.attrs.get('required', False):
-            return 'default' not in field.attrs and field.default_factory is MISSING
-        if field.attrs.get('prompt') and 'default' not in field.attrs and field.default_factory is MISSING:
+            return not has_explicit_default
+        if field.attrs.get('prompt') and not has_explicit_default:
             return True
-        return not _field_has_python_default(field)
+        if _field_has_python_default(field):
+            return False
+        return False
     if isinstance(field, Argument):
         if _field_has_python_default(field):
             return False

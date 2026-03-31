@@ -1,5 +1,5 @@
-from classyclick import utils
 import classyclick
+from classyclick import utils
 from tests import BaseCase
 
 
