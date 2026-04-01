@@ -177,11 +177,126 @@ When a `Group` subclass is created, `classyclick`:
 
 - builds a `click.Group` and stores it as `.click`
 - creates `Group.Command` and `Group.SubGroup` helper base classes
+- also exposes `Group.CommandMixin` and `Group.SubGroupMixin` for cases where
+  you need to combine the group binding with your own command/group base class
 - binds those helper bases so child commands and sub-groups register beneath the
   parent group automatically
 
 This gives you a compact way to build nested CLIs while keeping each command as
 its own class.
+
+## Helper utilities
+
+`classyclick.helpers` contains optional building blocks for larger CLIs.
+
+### Auto-discover command modules
+
+When a CLI is split across many modules, importing those modules is often enough
+to register their `Group.Command` and `Group.SubGroup` subclasses.
+
+`classyclick.helpers.discover_commands()` automates that import step:
+
+```python
+# in package/commands/__init__.py
+import classyclick
+
+
+class CLI(classyclick.Group):
+    """Application CLI."""
+
+
+classyclick.helpers.discover_commands(__package__)
+```
+
+This is the common pattern when each command lives in its own module under a
+`package.commands` package.
+
+It walks the package recursively and imports each module once.
+
+You can also call it from somewhere else, such as `package.__init__.py`, by
+pointing it at the commands package explicitly:
+
+```python
+classyclick.helpers.discover_commands(f'{__package__}.commands')
+```
+
+### Config-backed CLIs
+
+`classyclick.helpers.ConfigFileMixin` lets a command or group load defaults from
+`config.toml`.
+
+A common pattern is:
+
+```python
+from pathlib import Path
+
+import click
+
+import classyclick
+
+
+class CLI(classyclick.helpers.ConfigFileMixin, classyclick.Group):
+    """Application CLI."""
+
+    __config__ = classyclick.Group.Config(
+        context_settings=dict(show_default=True),
+        decorators=[click.version_option(version='1.2.3', message='%(version)s')],
+    )
+    CONFIG_DEFAULT_NAME = 'my-app'
+    CONFIG_EXAMPLE_PATH = Path(__file__).parent / 'config.example.toml'
+
+    host: str = classyclick.Option(help='Server URL')
+    token: str = classyclick.Option(help='API token')
+    debug: bool = classyclick.Option(help='Enable debug logging')
+
+    def __call__(self):
+        self.load_config()
+
+
+class Config(classyclick.helpers.ConfigBaseCommand, CLI.Command):
+    """Show or edit the current CLI configuration."""
+
+
+classyclick.helpers.discover_commands(__package__)
+```
+
+The mixin adds `--config` and `--env` options and a `ctx` field automatically.
+Call `self.load_config()` before you use config-backed values.
+
+`ConfigBaseCommand` is an optional helper command that prints the merged config
+or opens the file in `$VISUAL` / `$EDITOR`.
+
+### `config.toml` behavior
+
+The config file is intentionally aligned with the CLI:
+
+- root-level keys act as defaults for matching `classyclick` fields
+- command-line flags still win over config values
+- `--config` only selects which file to read, so it is not itself stored inside
+  `config.toml`
+- `--env` selects an `[env.<name>]` section, while `default_env` provides the
+  default environment value
+
+Example:
+
+```toml
+default_env = "dev"
+host = "https://api.example.com"
+
+[env.dev]
+token = "dev-token"
+debug = true
+
+[env.prod]
+token = "prod-token"
+```
+
+With this file:
+
+- `my-app status` uses the `dev` environment because of `default_env`
+- `my-app --env prod status` merges `[env.prod]` over the root config
+- `my-app --env prod --host https://staging.example.com status` still uses the
+  `prod` config, but the CLI flag overrides `host`
 
 ## Required field ordering
 

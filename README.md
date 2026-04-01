@@ -299,6 +299,76 @@ class Next(NextGroupMeta.Command):
         click.echo(self.your_number + self.step_number)
 ```
 
+### classyclick.helpers
+
+`classyclick.helpers` contains optional helpers for larger CLIs.
+
+One useful pattern is a root group that loads config defaults plus a built-in `config` command to inspect them:
+
+```python
+from pathlib import Path
+
+import click
+
+import classyclick
+
+
+class CLI(classyclick.helpers.ConfigFileMixin, classyclick.Group):
+    """Application CLI."""
+
+    __config__ = classyclick.Group.Config(
+        context_settings=dict(show_default=True),
+        decorators=[click.version_option(version='1.2.3', message='%(version)s')],
+    )
+    CONFIG_DEFAULT_NAME = 'my-app'
+    CONFIG_EXAMPLE_PATH = Path(__file__).parent / 'config.example.toml'
+
+    host: str = classyclick.Option(help='Server URL')
+    token: str = classyclick.Option(help='API token')
+    debug: bool = classyclick.Option(help='Enable debug logging')
+
+    def __call__(self):
+        self.load_config()
+
+
+class Config(classyclick.helpers.ConfigBaseCommand, CLI.Command):
+    pass
+
+
+# in package/commands/__init__.py
+classyclick.helpers.discover_commands(__package__)
+```
+
+`discover_commands()` is usually called from `package.commands.__init__.py` when each command lives in its own module. It recursively imports submodules so command classes register themselves under the group.
+
+It can also be called from elsewhere, such as `package.__init__.py`, by pointing it at the commands package directly with `classyclick.helpers.discover_commands(f'{__package__}.commands')`.
+
+`ConfigFileMixin` adds `--config` and `--env`, loads `config.toml`, merges `[env.<name>]` sections, and uses matching keys as defaults for classyclick fields. Explicit command-line flags still win over config values.
+
+`ConfigBaseCommand` is a ready-made command that shows the merged config or opens the active config file in `$VISUAL` or `$EDITOR`.
+
+### config.toml
+
+`config.toml` is meant to mirror your CLI options. Root-level keys become defaults for matching fields, and `default_env` selects a named `[env.<name>]` section to merge on top.
+
+```toml
+default_env = "dev"
+host = "https://api.example.com"
+
+[env.dev]
+token = "dev-token"
+debug = true
+
+[env.prod]
+token = "prod-token"
+```
+
+With this file:
+
+- `my-app status` uses the `dev` environment by default
+- `my-app --env prod status` merges the `prod` overrides over the root config
+- `my-app --env prod --host https://staging.example.com status` still uses `prod`, but the CLI flag overrides `host`
+
 ### Composition
 
 You can compose commands together as the wrapped class is just a `dataclass`.

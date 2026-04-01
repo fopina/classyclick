@@ -12,6 +12,7 @@ The top-level `classyclick` package re-exports the main public API from
 - `Command`
 - `Group`
 - `Option`, `Argument`, `Context`, `ContextObj`, `ContextMeta`
+- `helpers`
 
 Importing from the package root is the intended user-facing style.
 
@@ -229,6 +230,119 @@ It:
 
 Internal helper that walks the class MRO looking for inherited group-binding
 configuration.
+
+## `classyclick.helpers`
+
+Helper utilities built on top of the core `Command` and `Group` APIs.
+
+These are exported as `classyclick.helpers`.
+
+### `discover_commands(commands_package)`
+
+Imports every module below the given package, including nested subpackages.
+
+This is mainly useful for class-based groups where importing a module is enough
+to register its `Group.Command` or `Group.SubGroup` subclasses.
+
+Typical usage:
+
+```python
+# in package/commands/__init__.py
+classyclick.helpers.discover_commands(__package__)
+```
+
+This is the usual pattern when each command lives in its own module under a
+`package.commands` package.
+
+It can also be called from somewhere else, such as `package.__init__.py`:
+
+```python
+classyclick.helpers.discover_commands(f'{__package__}.commands')
+```
+
+### `ConfigFileMixin`
+
+Mixin for commands or groups that load option defaults from a `config.toml`
+file.
+
+It adds three fields:
+
+- `config`: path to the configuration file
+- `env`: optional environment name to select from `config.toml`
+- `ctx`: injected Click context used to publish loaded config metadata
+
+Subclasses are expected to configure:
+
+- `CONFIG_DEFAULT_NAME`: application name used to derive the user config
+  directory when `CONFIG_DEFAULT_PATH` is not overridden
+- `CONFIG_DEFAULT_PATH`: full default path to the config file
+- `CONFIG_EXAMPLE_PATH`: path to a bundled example config file, or `False` to
+  disable auto-creation
+
+Behavior:
+
+- if the config file does not exist and `CONFIG_EXAMPLE_PATH` is set, the file
+  is created from that example
+- root config values act as defaults for matching `classyclick` fields
+- `default_env` provides the default value for `--env`
+- `[env.<name>]` sections are merged over the root config when an environment is
+  selected
+- explicit CLI values still take precedence over config values
+
+After loading, the mixin stores extra data on `ctx.meta`:
+
+- `config_path`: resolved path to the loaded config file
+- `config_data`: merged configuration data after environment selection
+- `selected_env`: chosen environment name, if any
+
+It also assigns the merged config to `ctx.default_map` so Click can use the
+same defaults during parsing.
+
+### `ConfigFileMixin.ensure_config_file(config_path)`
+
+Resolves the path to use, creates parent directories when needed, and
+optionally copies the example config file into place.
+
+### `ConfigFileMixin.load_config_data(config_path)`
+
+Reads and parses the TOML configuration file.
+
+Override this if your application needs custom loading behavior.
+
+### `ConfigFileMixin.load_config()`
+
+Loads the config file, applies environment merging, copies matching config
+values into unset command fields, and publishes the result on the Click
+context.
+
+Applications typically call this near the start of `__call__()`.
+
+### `ConfigBaseCommand`
+
+Reusable command base that shows or edits the currently loaded configuration.
+
+It expects a `ConfigFileMixin`-based parent command or group to have already
+loaded config metadata into `ctx.meta`.
+
+By default it:
+
+- prints the active config file path
+- prints the selected environment when one is active
+- dumps the merged configuration as formatted JSON
+- masks values whose keys match `token` or `password`
+- opens the config file in `$VISUAL` or `$EDITOR` when `--edit` is used
+
+### `ConfigBaseCommand.MASKED`
+
+Replacement string used when masked config values are displayed.
+
+Defaults to `'<masked>'`.
+
+### `ConfigBaseCommand.MASKED_FIELDS`
+
+Sequence of field names that should be masked in output.
+
+Defaults to `('token', 'password')`.
 
 ## `classyclick.utils`
 
