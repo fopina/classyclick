@@ -197,6 +197,7 @@ to register their `Group.Command` and `Group.SubGroup` subclasses.
 `classyclick.helpers.discover_commands()` automates that import step:
 
 ```python
+# in package/commands/__init__.py
 import classyclick
 
 
@@ -207,7 +208,17 @@ class CLI(classyclick.Group):
 classyclick.helpers.discover_commands(__package__)
 ```
 
-This walks the package recursively and imports each module once.
+This is the common pattern when each command lives in its own module under a
+`package.commands` package.
+
+It walks the package recursively and imports each module once.
+
+You can also call it from somewhere else, such as `package.__init__.py`, by
+pointing it at the commands package explicitly:
+
+```python
+classyclick.helpers.discover_commands(f'{__package__}.commands')
+```
 
 ### Config-backed CLIs
 

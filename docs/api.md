@@ -247,7 +247,17 @@ to register its `Group.Command` or `Group.SubGroup` subclasses.
 Typical usage:
 
 ```python
+# in package/commands/__init__.py
 classyclick.helpers.discover_commands(__package__)
+```
+
+This is the usual pattern when each command lives in its own module under a
+`package.commands` package.
+
+It can also be called from somewhere else, such as `package.__init__.py`:
+
+```python
+classyclick.helpers.discover_commands(f'{__package__}.commands')
 ```
 
 ### `ConfigFileMixin`

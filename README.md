@@ -335,10 +335,13 @@ class Config(classyclick.helpers.ConfigBaseCommand, CLI.Command):
     pass
 
 
+# in package/commands/__init__.py
 classyclick.helpers.discover_commands(__package__)
 ```
 
-`discover_commands()` recursively imports submodules so command classes register themselves under the group when your CLI is split across packages.
+`discover_commands()` is usually called from `package.commands.__init__.py` when each command lives in its own module. It recursively imports submodules so command classes register themselves under the group.
+
+It can also be called from elsewhere, such as `package.__init__.py`, by pointing it at the commands package directly with `classyclick.helpers.discover_commands(f'{__package__}.commands')`.
 
 `ConfigFileMixin` adds `--config` and `--env`, loads `config.toml`, merges `[env.<name>]` sections, and uses matching keys as defaults for classyclick fields. Explicit command-line flags still win over config values.
 
