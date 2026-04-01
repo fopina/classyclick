@@ -26,6 +26,7 @@ the API reference when you need exact behavior.
   attributes to Click parameters
 - `classyclick.Context`, `classyclick.ContextObj`, and `classyclick.ContextMeta`
   for injecting Click context values onto the command instance
+- `classyclick.helpers` for command auto-discovery and config-backed CLIs
 - `.click` objects generated automatically from those classes
 
 ## Installation
