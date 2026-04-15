@@ -1,3 +1,4 @@
+import sys
 from dataclasses import dataclass
 
 from click.testing import CliRunner
@@ -42,6 +43,8 @@ class Test(BaseCase):
 
     def test_command_supports_dataclass_mixin_with_classyclick_option(self):
         """https://github.com/fopina/classyclick/issues/71"""
+        if sys.version_info < (3, 10):
+            self.skipTest('dataclass kw_only requires Python 3.10+')
 
         @dataclass(kw_only=True)
         class BaseMixin:
