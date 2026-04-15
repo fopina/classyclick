@@ -1,3 +1,5 @@
+from dataclasses import dataclass
+
 from click.testing import CliRunner
 
 import classyclick
@@ -37,3 +39,19 @@ class Test(BaseCase):
         result = CliRunner().invoke(Child.click, ['base', 'child'])
         self.assertEqual(result.exit_code, 0)
         self.assertEqual(result.output, 'base:foo:child:bar\n')
+
+    def test_command_supports_dataclass_mixin_with_classyclick_option(self):
+        """https://github.com/fopina/classyclick/issues/71"""
+
+        @dataclass(kw_only=True)
+        class BaseMixin:
+            debug: bool = classyclick.Option()
+
+        class FixMe(classyclick.Command, BaseMixin):
+            some_flag: bool = classyclick.Option()
+
+            def __call__(self):
+                print(f'debug={self.debug} some_flag={self.some_flag}')
+
+        result = CliRunner().invoke(FixMe.click, ['--debug', '--some-flag'])
+        self.assertEqual(result.exit_code, 0, result.exception or result.output)
