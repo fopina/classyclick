@@ -115,3 +115,17 @@ Options:
             ),
             (None, 0, 'Hello, john and paul\n'),
         )
+
+    def test_type_list_nargs_variadic(self):
+        class DP(classyclick.Command):
+            other_attachments: list[str] = classyclick.Argument(nargs=-1)
+
+            def __call__(self):
+                print(repr(self.other_attachments))
+
+        runner = CliRunner()
+
+        result = runner.invoke(DP.click, ['asd', 'qwe'])
+        self.assertEqual(result.exception, None)
+        self.assertEqual(result.exit_code, 0)
+        self.assertEqual(result.output, "('asd', 'qwe')\n")
