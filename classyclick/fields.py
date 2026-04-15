@@ -26,10 +26,21 @@ class _Field(DataclassField):
 
     def infer_type(self):
         if 'type' not in self.attrs:
-            if (self.attrs.get('multiple', False) or self.attrs.get('nargs', 1) > 1) and get_origin(self.type) is list:
-                self.attrs['type'] = get_args(self.type)[0]
-            else:
-                self.attrs['type'] = self.type
+            nargs = self.attrs.get('nargs', 1)
+            inferred_type = self.type
+            if self.attrs.get('multiple', False) or nargs not in (None, 1):
+                origin = get_origin(self.type)
+                args = get_args(self.type)
+                if origin is list and len(args) == 1:
+                    inferred_type = args[0]
+                elif origin is tuple:
+                    if len(args) == 1:
+                        inferred_type = args[0]
+                    elif len(args) == 2 and args[1] is Ellipsis:
+                        inferred_type = args[0]
+                    elif isinstance(nargs, int) and nargs > 1 and len(args) == nargs:
+                        inferred_type = args
+            self.attrs['type'] = inferred_type
 
     def get_type(self):
         return self._click_type
