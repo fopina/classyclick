@@ -98,6 +98,7 @@ def _build_init(kls):
         if not _field_is_required_for_init(field):
             break
     positional_fields = tuple(positional_fields)
+    positional_field_names = {field.name for field in positional_fields}
 
     def __init__(self, *args, **kwargs):
         if len(args) > len(positional_fields):
@@ -133,7 +134,9 @@ def _build_init(kls):
 
             setattr(self, field.name, value)
 
-        for field in init_fields[len(positional_fields) :]:
+        for field in init_fields:
+            if field.name in positional_field_names:
+                continue
             required_for_init = _field_is_required_for_init(field)
             if field.name in remaining_kwargs:
                 value = remaining_kwargs.pop(field.name)
