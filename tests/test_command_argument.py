@@ -128,7 +128,7 @@ class TestIssue35(BaseCase):
             def __call__(self):
                 print(repr(self.p1), repr(self.p2))
 
-        runner = CliRunner(catch_exceptions=False)
+        runner = CliRunner()
         result = runner.invoke(DP.click, ['-a', 'asd', '-a', 'qwe', '-b', 'foo', 'bar'])
         self.assertEqual(result.exception, None)
         self.assertEqual(result.exit_code, 0)
@@ -141,7 +141,7 @@ class TestIssue35(BaseCase):
             def __call__(self):
                 print(repr(self.other_attachments))
 
-        runner = CliRunner(catch_exceptions=False)
+        runner = CliRunner()
         result = runner.invoke(DP.click, ['asd', 'qwe'])
         self.assertEqual(result.exception, None)
         self.assertEqual(result.exit_code, 0)
@@ -154,7 +154,7 @@ class TestIssue35(BaseCase):
             def __call__(self):
                 print(repr(self.other_attachments))
 
-        runner = CliRunner(catch_exceptions=False)
+        runner = CliRunner()
         result = runner.invoke(DP.click, ['asd', 'qwe'])
         self.assertEqual(result.exception, None)
         self.assertEqual(result.exit_code, 0)
@@ -167,7 +167,7 @@ class TestIssue35(BaseCase):
             def __call__(self):
                 print(repr(self.other_attachments))
 
-        runner = CliRunner(catch_exceptions=False)
+        runner = CliRunner()
         result = runner.invoke(DP.click, ['asd', '1'])
         self.assertEqual(result.exception, None)
         self.assertEqual(result.exit_code, 0)
