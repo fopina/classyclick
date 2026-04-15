@@ -121,26 +121,25 @@ Options:
 
         # confirm Option multiple=True still works (as it did before the fix)
         class DP(classyclick.Command):
-            other_attachments: list[str] = classyclick.Option('-o', multiple=True)
+            p1: list[str] = classyclick.Option('-a', multiple=True)
+            p2: list[str] = classyclick.Option('-b', nargs=2)
 
             def __call__(self):
-                print(repr(self.other_attachments))
+                print(repr(self.p1), repr(self.p2))
 
-        runner = CliRunner()
+        runner = CliRunner(catch_exceptions=False)
 
-        result = runner.invoke(DP.click, ['-o', 'asd', '-o', 'qwe'])
+        result = runner.invoke(DP.click, ['-a', 'asd', '-a', 'qwe', '-b', 'foo', 'bar'])
         self.assertEqual(result.exception, None)
         self.assertEqual(result.exit_code, 0)
-        self.assertEqual(result.output, "('asd', 'qwe')\n")
+        self.assertEqual(result.output, "('asd', 'qwe') ('foo', 'bar')\n")
 
         # confirm issue is fixed
         class DP(classyclick.Command):
-            other_attachments: list[str] = classyclick.Argument(nargs=-1)
+            other_attachments: list[str] = classyclick.Argument(nargs=2)
 
             def __call__(self):
                 print(repr(self.other_attachments))
-
-        runner = CliRunner()
 
         result = runner.invoke(DP.click, ['asd', 'qwe'])
         self.assertEqual(result.exception, None)

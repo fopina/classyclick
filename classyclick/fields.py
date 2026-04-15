@@ -26,7 +26,8 @@ class _Field(DataclassField):
 
     def infer_type(self):
         if 'type' not in self.attrs:
-            if (self.attrs.get('multiple', False) or self.attrs.get('nargs', 1) > 1) and get_origin(self.type) is list:
+            nargs = self.attrs.get('nargs', 1)
+            if (self.attrs.get('multiple', False) or nargs not in (None, 1)) and get_origin(self.type) is list:
                 self.attrs['type'] = get_args(self.type)[0]
             else:
                 self.attrs['type'] = self.type
