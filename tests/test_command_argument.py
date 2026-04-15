@@ -117,6 +117,23 @@ Options:
         )
 
     def test_type_list_nargs_variadic(self):
+        """https://github.com/fopina/classyclick/issues/35"""
+
+        # confirm Option multiple=True still works (as it did before the fix)
+        class DP(classyclick.Command):
+            other_attachments: list[str] = classyclick.Option('-o', multiple=True)
+
+            def __call__(self):
+                print(repr(self.other_attachments))
+
+        runner = CliRunner()
+
+        result = runner.invoke(DP.click, ['-o', 'asd', '-o', 'qwe'])
+        self.assertEqual(result.exception, None)
+        self.assertEqual(result.exit_code, 0)
+        self.assertEqual(result.output, "('asd', 'qwe')\n")
+
+        # confirm issue is fixed
         class DP(classyclick.Command):
             other_attachments: list[str] = classyclick.Argument(nargs=-1)
 
