@@ -116,10 +116,11 @@ Options:
             (None, 0, 'Hello, john and paul\n'),
         )
 
-    def test_type_list_nargs_variadic(self):
-        """https://github.com/fopina/classyclick/issues/35"""
 
-        # confirm Option multiple=True still works (as it did before the fix)
+class TestIssue35(BaseCase):
+    """https://github.com/fopina/classyclick/issues/35"""
+
+    def test_option_multiple_and_nargs_still_work(self):
         class DP(classyclick.Command):
             p1: list[str] = classyclick.Option('-a', multiple=True)
             p2: list[str] = classyclick.Option('-b', nargs=2)
@@ -128,20 +129,46 @@ Options:
                 print(repr(self.p1), repr(self.p2))
 
         runner = CliRunner(catch_exceptions=False)
-
         result = runner.invoke(DP.click, ['-a', 'asd', '-a', 'qwe', '-b', 'foo', 'bar'])
         self.assertEqual(result.exception, None)
         self.assertEqual(result.exit_code, 0)
         self.assertEqual(result.output, "('asd', 'qwe') ('foo', 'bar')\n")
 
-        # confirm issue is fixed
+    def test_argument_with_fixed_nargs_and_list_annotation(self):
         class DP(classyclick.Command):
             other_attachments: list[str] = classyclick.Argument(nargs=2)
 
             def __call__(self):
                 print(repr(self.other_attachments))
 
+        runner = CliRunner(catch_exceptions=False)
         result = runner.invoke(DP.click, ['asd', 'qwe'])
         self.assertEqual(result.exception, None)
         self.assertEqual(result.exit_code, 0)
         self.assertEqual(result.output, "('asd', 'qwe')\n")
+
+    def test_argument_with_variadic_nargs_and_tuple_annotation(self):
+        class DP(classyclick.Command):
+            other_attachments: tuple[str, ...] = classyclick.Argument(nargs=-1)
+
+            def __call__(self):
+                print(repr(self.other_attachments))
+
+        runner = CliRunner(catch_exceptions=False)
+        result = runner.invoke(DP.click, ['asd', 'qwe'])
+        self.assertEqual(result.exception, None)
+        self.assertEqual(result.exit_code, 0)
+        self.assertEqual(result.output, "('asd', 'qwe')\n")
+
+    def test_argument_with_fixed_nargs_and_fixed_tuple_annotation(self):
+        class DP(classyclick.Command):
+            other_attachments: tuple[str, int] = classyclick.Argument(nargs=2)
+
+            def __call__(self):
+                print(repr(self.other_attachments))
+
+        runner = CliRunner(catch_exceptions=False)
+        result = runner.invoke(DP.click, ['asd', '1'])
+        self.assertEqual(result.exception, None)
+        self.assertEqual(result.exit_code, 0)
+        self.assertEqual(result.output, "('asd', 1)\n")
