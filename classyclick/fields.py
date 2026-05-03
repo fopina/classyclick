@@ -1,4 +1,4 @@
-import sys
+import inspect
 from dataclasses import MISSING
 from dataclasses import Field as DataclassField
 from typing import TYPE_CHECKING, Any, get_args, get_origin
@@ -9,8 +9,10 @@ if TYPE_CHECKING:
 from . import utils
 
 _EXTRA_DATACLASS_INIT = dict(default_factory=MISSING, init=True, repr=True, hash=None, compare=True, metadata=None)
-if sys.version_info >= (3, 10):
+if 'kw_only' in inspect.signature(DataclassField).parameters:
     _EXTRA_DATACLASS_INIT['kw_only'] = MISSING
+if 'doc' in inspect.signature(DataclassField).parameters:
+    _EXTRA_DATACLASS_INIT['doc'] = None
 
 
 class _Field(DataclassField):
