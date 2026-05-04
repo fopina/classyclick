@@ -50,11 +50,23 @@ def get_inherited_doc(kls):
     return doc
 
 
-def strictly_typed_dataclass(kls):
+def _local_annotations(kls):
     # Python 3.9 can expose inherited annotations via getattr(..., '__annotations__'),
-    # which makes base helper attributes like `click` look like local dataclass fields.
-    # Once Python 3.9 support is dropped, revisit whether this can be simplified.
-    annotations = kls.__dict__.get('__annotations__', {})
+    # which makes base helper attributes look like local dataclass fields.
+    annotations = kls.__dict__.get('__annotations__')
+    if annotations is not None:
+        return annotations
+
+    # Python 3.14 may not populate __dict__['__annotations__'] until accessed,
+    # but classes that define annotations expose __annotate_func__ in __dict__.
+    if '__annotate_func__' in kls.__dict__:
+        return getattr(kls, '__annotations__', {})
+
+    return {}
+
+
+def strictly_typed_dataclass(kls):
+    annotations = _local_annotations(kls)
     for name, val in kls.__dict__.items():
         if name.startswith('__'):
             continue
@@ -67,9 +79,9 @@ def strictly_typed_dataclass(kls):
 
 
 def _validate_local_field_order(kls):
-    # Same Python 3.9 compatibility note as in strictly_typed_dataclass():
+    # Same compatibility note as in strictly_typed_dataclass():
     # only consider annotations declared on this class body.
-    local_annotations = kls.__dict__.get('__annotations__', {})
+    local_annotations = _local_annotations(kls)
     dataclass_fields = kls.__dataclass_fields__
     previous_default = None
     for name in local_annotations:

@@ -11,6 +11,8 @@ from . import utils
 _EXTRA_DATACLASS_INIT = dict(default_factory=MISSING, init=True, repr=True, hash=None, compare=True, metadata=None)
 if sys.version_info >= (3, 10):
     _EXTRA_DATACLASS_INIT['kw_only'] = MISSING
+if sys.version_info >= (3, 14):
+    _EXTRA_DATACLASS_INIT['doc'] = None
 
 
 class _Field(DataclassField):
