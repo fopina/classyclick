@@ -88,6 +88,8 @@ Special behavior added by `classyclick`:
 - adds a default long option such as `--dry-run` when
   `default_parameter=True`
 - infers `type` from the field annotation when `type` is omitted
+- unwraps nullable annotations with exactly one Click-supported member, such as
+  `Optional[str]` or `str | None`
 - converts `bool` annotations into flags unless `is_flag` is already set
 - mirrors Click's required/default handling back onto the dataclass field
 - uses `doc` as Click help when `help` is omitted; explicit `help` wins
@@ -98,6 +100,8 @@ Rules and caveats:
   the destination name
 - `required=True` makes the field a required dataclass field
 - declaration order still matters because the owning class becomes a dataclass
+- other union annotations require an explicit `type=`; this does not change
+  whether an `Argument` is required
 
 ### `Option.__call__(command)`
 
@@ -112,6 +116,8 @@ Special behavior added by `classyclick`:
 
 - the argument name always comes from the field name
 - the annotation is used as `type` unless you provide one
+- nullable annotations with exactly one Click-supported member infer that
+  member as the Click type; other unions require an explicit `type=`
 - required/optional status is mirrored back into the dataclass field default
 
 Because it represents a positional value, there is no equivalent to
