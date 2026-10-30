@@ -50,7 +50,9 @@ jobs:
           uv build
 
   tests:
-    runs-on: ubuntu-latest
+    # Ubuntu 26.04 does not yet have a setup-python build for Python 3.9,
+    # which is still part of the supported-version matrix.
+    runs-on: ubuntu-24.04
     strategy:
       matrix:
         # 3.10 added as there are "unique" issues in it (such as Path requiring str() for many core methods)
