@@ -27,9 +27,13 @@ class _Field(DataclassField):
     default = MISSING
 
     def __init__(self, **attrs):
+        self._classyclick_doc = attrs.pop('doc', None)
         self.attrs = attrs
         _default = attrs.get('default', self.default)
-        super().__init__(default=_default, **_EXTRA_DATACLASS_INIT)
+        dataclass_kwargs = _EXTRA_DATACLASS_INIT.copy()
+        if 'doc' in dataclass_kwargs:
+            dataclass_kwargs['doc'] = self._classyclick_doc
+        super().__init__(default=_default, **dataclass_kwargs)
 
     def infer_type(self):
         if 'type' not in self.attrs:
@@ -131,6 +135,9 @@ class Option(_Field):
         for param in self.param_decls:
             if param[0] != '-':
                 raise TypeError(f'{command.__name__} option {self.name}: do not specify a name, it is already added')
+
+        if 'help' not in self.attrs and self._classyclick_doc is not None:
+            self.attrs['help'] = self._classyclick_doc
 
         # bake field.name as option name
         param_decls = (self.name,) + self.param_decls
