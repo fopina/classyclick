@@ -264,7 +264,7 @@ The mixin adds `--config` and `--env` options and a `ctx` field automatically.
 Call `self.load_config()` before you use config-backed values.
 
 `ConfigBaseCommand` is an optional helper command that prints the merged config
-or opens the file in `$VISUAL` / `$EDITOR`. Pass `--raw` to include the complete
+or opens the file in `$VISUAL` / `$EDITOR`. Pass `--full` to include the complete
 configuration, including every environment section, or `-l` / `--list` to print
 only the configured environment names.
 

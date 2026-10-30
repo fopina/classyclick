@@ -345,7 +345,7 @@ It can also be called from elsewhere, such as `package.__init__.py`, by pointing
 
 `ConfigFileMixin` adds `--config` and `--env`, loads `config.toml`, merges `[env.<name>]` sections, and uses matching keys as defaults for classyclick fields. Explicit command-line flags still win over config values.
 
-`ConfigBaseCommand` is a ready-made command that shows the merged config or opens the active config file in `$VISUAL` or `$EDITOR`. Use `--raw` to show the complete configuration, or `-l` / `--list` to list only the configured environments.
+`ConfigBaseCommand` is a ready-made command that shows the merged config or opens the active config file in `$VISUAL` or `$EDITOR`. Use `--full` to show the complete configuration, or `-l` / `--list` to list only the configured environments.
 
 ### config.toml
 

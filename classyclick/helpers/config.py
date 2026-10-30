@@ -92,18 +92,19 @@ class ConfigFileMixin:
 
     def load_config(self):
         self.config = type(self).ensure_config_file(self.config)
-        config_data = type(self).load_config_data(self.config)
-        raw_config_data = config_data
+        config_file_data = type(self).load_config_data(self.config)
+        config_data = dict(config_file_data)
 
         if self.env is None:
-            self.env = config_data.get('default_env')
+            self.env = config_file_data.get('default_env')
 
         # allow empty string to choose root environment when "default_env" is set to something else
         if self.env:
-            if self.env not in config_data.get('env', {}):
+            if self.env not in config_file_data.get('env', {}):
                 raise click.ClickException(f'Environment "{self.env}" not found in {self.config}')
-            env_config = config_data['env'][self.env]
+            env_config = config_file_data['env'][self.env]
             config_data = merge_dicts(config_data, env_config)
+        config_data.pop('env', None)
 
         ignored_fields = {field.name for field in fields(ConfigFileMixin)}
         for field in fields(self):
@@ -121,7 +122,7 @@ class ConfigFileMixin:
 
         self.ctx.meta['config_path'] = self.config
         self.ctx.meta['config_data'] = config_data
-        self.ctx.meta['config_raw_data'] = raw_config_data
+        self.ctx.meta['config_file_data'] = config_file_data
         self.ctx.meta['selected_env'] = self.env
         self.ctx.default_map = config_data
 
@@ -133,7 +134,7 @@ class ConfigBaseCommand(classyclick.Command):
     MASKED_FIELDS = ('token', 'password')
 
     edit: bool = classyclick.Option('-e', help='Open the config file in $VISUAL or $EDITOR')
-    raw: bool = classyclick.Option('--raw', help='Show the entire configuration file')
+    full: bool = classyclick.Option('--full', help='Show the complete configuration')
     list: bool = classyclick.Option('-l', '--list', help='List configured environments')
     ctx: click.Context = classyclick.Context()
 
@@ -179,17 +180,17 @@ class ConfigBaseCommand(classyclick.Command):
             return
 
         if self.list:
-            for env_name in sorted(self.ctx.meta['config_raw_data'].get('env', {})):
+            for env_name in sorted(self.ctx.meta['config_file_data'].get('env', {})):
                 click.echo(env_name)
             return
 
-        if self.raw:
-            config = self.ctx.meta['config_raw_data']
+        if self.full:
+            config = self.ctx.meta['config_file_data']
         else:
-            config = {key: value for key, value in self.ctx.meta['config_data'].items() if key != 'env'}
+            config = self.ctx.meta['config_data']
 
         click.echo(f'Config file: {click.style(str(config_path), bold=True)}')
-        if not self.raw and self.ctx.meta['selected_env']:
+        if not self.full and self.ctx.meta['selected_env']:
             click.echo(f'Environment: {click.style(self.ctx.meta["selected_env"], bold=True)}')
 
         click.echo(json.dumps(self._mask_value('config', config), indent=2, sort_keys=True))
