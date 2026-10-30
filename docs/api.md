@@ -286,13 +286,15 @@ Behavior:
 - root config values act as defaults for matching `classyclick` fields
 - `default_env` provides the default value for `--env`
 - `[env.<name>]` sections are merged over the root config when an environment is
-  selected
+  selected, then removed from the merged `config_data`
 - explicit CLI values still take precedence over config values
 
 After loading, the mixin stores extra data on `ctx.meta`:
 
 - `config_path`: resolved path to the loaded config file
-- `config_data`: merged configuration data after environment selection
+- `config_data`: merged configuration data after environment selection, without
+  the `env` table
+- `config_file_data`: parsed configuration data before environment merging
 - `selected_env`: chosen environment name, if any
 
 It also assigns the merged config to `ctx.default_map` so Click can use the
@@ -329,6 +331,8 @@ By default it:
 - prints the active config file path
 - prints the selected environment when one is active
 - dumps the merged configuration as formatted JSON
+- includes every environment section when `--full` is used
+- lists only environment names when `--list` is used
 - masks values whose keys match `token` or `password`
 - opens the config file in `$VISUAL` or `$EDITOR` when `--edit` is used
 
