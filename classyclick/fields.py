@@ -8,6 +8,11 @@ if TYPE_CHECKING:
 
 from . import utils
 
+
+def _is_click_unset(value):
+    return type(value).__module__ == 'click._utils' and type(value).__qualname__ == 'Sentinel' and value.name == 'UNSET'
+
+
 _EXTRA_DATACLASS_INIT = dict(default_factory=MISSING, init=True, repr=True, hash=None, compare=True, metadata=None)
 if sys.version_info >= (3, 10):
     _EXTRA_DATACLASS_INIT['kw_only'] = MISSING
@@ -153,7 +158,7 @@ class Option(_Field):
                 # let it error out later with real command
                 return
             if not o.param.required:
-                self.default = o.param.default
+                self.default = None if _is_click_unset(o.param.default) else o.param.default
 
 
 class Context(_Field):

@@ -66,6 +66,21 @@ class Test(BaseCase):
         self.assertEqual(obj.name, 'John')
         self.assertEqual(obj.age, 20)
 
+    def test_option_without_default_uses_none_for_class_init(self):
+        """https://github.com/fopina/classyclick/issues/37"""
+
+        class Submit(classyclick.Command):
+            service: str = classyclick.Option('-s', help='Service name')
+
+            def __call__(self):
+                print(repr(self.service))
+
+        self.assertIsNone(Submit().service)
+
+        result = self.runner.invoke(Submit.click)
+        self.assertEqual(result.exit_code, 0)
+        self.assertEqual(result.output, 'None\n')
+
     def test_defaults_and_required(self):
         """https://github.com/fopina/classyclick/issues/30"""
 
