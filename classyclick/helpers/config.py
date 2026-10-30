@@ -93,6 +93,7 @@ class ConfigFileMixin:
     def load_config(self):
         self.config = type(self).ensure_config_file(self.config)
         config_data = type(self).load_config_data(self.config)
+        raw_config_data = config_data
 
         if self.env is None:
             self.env = config_data.get('default_env')
@@ -120,6 +121,7 @@ class ConfigFileMixin:
 
         self.ctx.meta['config_path'] = self.config
         self.ctx.meta['config_data'] = config_data
+        self.ctx.meta['config_raw_data'] = raw_config_data
         self.ctx.meta['selected_env'] = self.env
         self.ctx.default_map = config_data
 
@@ -131,6 +133,8 @@ class ConfigBaseCommand(classyclick.Command):
     MASKED_FIELDS = ('token', 'password')
 
     edit: bool = classyclick.Option('-e', help='Open the config file in $VISUAL or $EDITOR')
+    raw: bool = classyclick.Option('--raw', help='Show the entire configuration file')
+    list: bool = classyclick.Option('-l', '--list', help='List configured environments')
     ctx: click.Context = classyclick.Context()
 
     @classmethod
@@ -174,10 +178,18 @@ class ConfigBaseCommand(classyclick.Command):
                 raise click.ClickException(f'Editor exited with status {exc.returncode}') from exc
             return
 
-        config = {key: value for key, value in self.ctx.meta['config_data'].items() if key != 'env'}
+        if self.list:
+            for env_name in sorted(self.ctx.meta['config_raw_data'].get('env', {})):
+                click.echo(env_name)
+            return
+
+        if self.raw:
+            config = self.ctx.meta['config_raw_data']
+        else:
+            config = {key: value for key, value in self.ctx.meta['config_data'].items() if key != 'env'}
 
         click.echo(f'Config file: {click.style(str(config_path), bold=True)}')
-        if self.ctx.meta['selected_env']:
+        if not self.raw and self.ctx.meta['selected_env']:
             click.echo(f'Environment: {click.style(self.ctx.meta["selected_env"], bold=True)}')
 
         click.echo(json.dumps(self._mask_value('config', config), indent=2, sort_keys=True))
