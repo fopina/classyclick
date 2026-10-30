@@ -280,6 +280,11 @@ class Next(NextGroup.Command):
 
 Like [`click.pass_meta_key`](https://click.palletsprojects.com/en/stable/api/#click.decorators.pass_meta_key), this assigns `click.Context.meta[KEY]` to a command property, without handling the whole context.
 
+By default, the field is required for direct construction, and Click raises
+`KeyError` if the metadata key is missing. Set `default=` to provide a fallback
+for direct construction and for CLI invocation when the key is absent; a value
+present in `click.Context.meta` takes precedence.
+
 <!-- example-id: tests/cli_next_ctx_meta.py 3 -->
 ```python
 class NextGroupMeta(classyclick.Group):

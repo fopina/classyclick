@@ -135,12 +135,16 @@ Behavior:
 
 Like `Context()`, but injects `click.Context.obj` using `click.pass_obj`.
 
-### `ContextMeta(key, **attrs)`
+### `ContextMeta(key, *, default=..., **attrs)`
 
 Injects `click.Context.meta[key]` using `click.decorators.pass_meta_key`.
 
 Unlike `Context` and `ContextObj`, this is required by default because Click
-raises `KeyError` when the key is missing.
+raises `KeyError` when the key is missing. Pass `default=value` to make direct
+class construction optional and use `value` as the CLI fallback when the key
+is absent from `click.Context.meta`. A value already present in the context
+metadata takes precedence. Without a default, missing CLI metadata continues to
+raise `KeyError`.
 
 ### `_Field`
 
