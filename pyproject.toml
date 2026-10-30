@@ -1,6 +1,6 @@
 [build-system]
 requires = [
-    "setuptools>=61.0.0,<69.3.0",
+    "setuptools>=61.0.0,<84.2.0",
     "click>=7",
     "typing-extensions>=4.12.2; python_version < '3.13'",
     "tomli; python_version < '3.11'",
