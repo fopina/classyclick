@@ -11,6 +11,52 @@ from tests import BaseCase
 
 
 class TestConfigBaseCommand(BaseCase):
+    def invoke_config_output(self, *, full=False, list_envs=False, file_data=None):
+        class CustomConfigCommand(ConfigBaseCommand):
+            __classyclick_skip_build__ = True
+
+        command = CustomConfigCommand.__new__(CustomConfigCommand)
+        command.edit = False
+        command.full = full
+        command.list = list_envs
+        command.ctx = click.Context(click.Command('config'))
+        command.ctx.meta.update(
+            config_path=Path('/tmp/config.toml'),
+            config_file_data=file_data or {},
+            config_data={},
+            selected_env='dev',
+        )
+        cli = click.Command('config', callback=lambda: command())
+        return CliRunner().invoke(cli)
+
+    def test_list_outputs_only_environment_names(self):
+        result = self.invoke_config_output(
+            list_envs=True,
+            file_data={'token': 'root-secret', 'env': {'prod': {}, 'dev': {}}},
+        )
+
+        self.assertEqual(result.exit_code, 0, result.exception)
+        self.assertEqual(result.output, 'dev\nprod\n')
+
+    def test_full_outputs_all_environments_and_masks_secrets(self):
+        result = self.invoke_config_output(
+            full=True,
+            file_data={
+                'token': 'root-secret',
+                'env': {
+                    'dev': {'password': 'dev-password'},
+                    'prod': {'nested': {'token': 'prod-secret'}},
+                },
+            },
+        )
+
+        self.assertEqual(result.exit_code, 0, result.exception)
+        self.assertIn('"dev"', result.output)
+        self.assertIn('"prod"', result.output)
+        for secret in ('root-secret', 'dev-password', 'prod-secret'):
+            self.assertNotIn(secret, result.output)
+        self.assertEqual(result.output.count('<masked>'), 3)
+
     def test_mask_value_uses_class_configuration(self):
         class CustomConfigCommand(ConfigBaseCommand):
             __classyclick_skip_build__ = True
@@ -172,6 +218,44 @@ class TestConfigFileMixin(BaseCase):
         self.assertEqual(command.username, 'config-user')
         self.assertTrue(command.enabled)
         self.assertEqual(command.retries, 7)
+
+    def test_load_config_removes_environment_table_from_merged_data(self):
+        class CustomConfigCommand(ConfigFileMixin, classyclick.Command):
+            CONFIG_EXAMPLE_PATH = False
+            host: str = classyclick.Option()
+
+            @classmethod
+            def ensure_config_file(cls, config_path):
+                return Path('/tmp/custom-config.toml')
+
+            @classmethod
+            def load_config_data(cls, config_path):
+                return {
+                    'default_env': 'dev',
+                    'host': 'root-host',
+                    'env': {
+                        'dev': {'host': 'dev-host'},
+                        'prod': {'host': 'prod-host'},
+                    },
+                }
+
+            def __call__(self):
+                return None
+
+        command = CustomConfigCommand(
+            config=None,
+            env=None,
+            ctx=click.Context(CustomConfigCommand.click),
+            host=None,
+        )
+        command.load_config()
+
+        self.assertEqual(command.ctx.meta['config_data']['host'], 'dev-host')
+        self.assertNotIn('env', command.ctx.meta['config_data'])
+        self.assertEqual(
+            sorted(command.ctx.meta['config_file_data']['env']),
+            ['dev', 'prod'],
+        )
 
     def test_subclass_default_path_updates_click_show_default(self):
         class CustomConfigCommand(ConfigFileMixin, classyclick.Command):
