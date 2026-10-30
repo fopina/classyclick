@@ -196,6 +196,31 @@ Options:
 """,
         )
 
+    def test_option_doc_is_used_as_help_when_help_is_not_set(self):
+        class Hello(classyclick.Command):
+            name: str = classyclick.Option(doc='The person to greet.')
+
+            def __call__(self): ...
+
+        field = Hello.__dataclass_fields__['name']
+        if hasattr(field, 'doc'):
+            self.assertEqual(field.doc, 'The person to greet.')
+
+        result = self.runner.invoke(Hello.click, ['--help'])
+        self.assertEqual(result.exit_code, 0)
+        self.assertIn('--name TEXT  The person to greet.', result.output)
+
+    def test_option_help_takes_precedence_over_doc(self):
+        class Hello(classyclick.Command):
+            name: str = classyclick.Option(doc='Field-level description.', help='Explicit Click help.')
+
+            def __call__(self): ...
+
+        result = self.runner.invoke(Hello.click, ['--help'])
+        self.assertEqual(result.exit_code, 0)
+        self.assertIn('--name TEXT  Explicit Click help.', result.output)
+        self.assertNotIn('Field-level description.', result.output)
+
     def test_help_without_docstring_is_empty(self):
         class Hello(classyclick.Command):
             def __call__(self): ...

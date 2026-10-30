@@ -90,6 +90,7 @@ Special behavior added by `classyclick`:
 - infers `type` from the field annotation when `type` is omitted
 - converts `bool` annotations into flags unless `is_flag` is already set
 - mirrors Click's required/default handling back onto the dataclass field
+- uses `doc` as Click help when `help` is omitted; explicit `help` wins
 
 Rules and caveats:
 

@@ -51,9 +51,15 @@ from classyclick import Command, Option
 
 
 class Build(Command):
-    output: Path = Option(help='Where to write the build output.')
+    output: Path = Option(doc='Where to write the build output.')
     verbose: bool = Option(help='Enable verbose logging.')
 ```
+
+For options, `doc` supplies the Click help text when `help` is omitted. An
+explicit `help` value takes precedence. `doc` is stored as the dataclass field
+documentation where the Python runtime supports `Field.doc` (Python 3.14+);
+classyclick accepts it as an option-level fallback on older supported runtimes
+as well.
 
 Important behaviors:
 
