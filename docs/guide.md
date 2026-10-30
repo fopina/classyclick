@@ -67,6 +67,10 @@ Important behaviors:
 - `default_parameter=True` adds a long option such as `--output`
 - extra positional declarations such as `'-o'` are forwarded to Click
 - type annotations are used as the Click `type` when you do not provide one
+- nullable single types such as `Optional[str]` and `str | None` infer the
+  underlying Click type (`str`); an omitted Option still defaults to `None`
+- unions with multiple non-`None` members, or nullable members Click cannot
+  infer, require an explicit `type=`
 - `bool` fields become flags by default unless you override `is_flag`
 
 Examples:
@@ -99,6 +103,8 @@ Important behaviors:
 - `Argument` is required by default, matching Click's usual behavior
 - if Click determines the argument is optional, the dataclass default is set to
   `None`
+- nullable single-type annotations infer the underlying Click type, but do not
+  make the argument optional; other unions require an explicit `type=`
 
 ### Context injection
 

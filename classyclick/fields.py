@@ -1,8 +1,9 @@
 import sys
+import types
 from dataclasses import MISSING
 from dataclasses import Field as DataclassField
 from functools import wraps
-from typing import TYPE_CHECKING, Any, get_args, get_origin
+from typing import TYPE_CHECKING, Any, Union, get_args, get_origin
 
 if TYPE_CHECKING:
     from click import Command
@@ -40,9 +41,11 @@ class _Field(DataclassField):
         if 'type' not in self.attrs:
             nargs = self.attrs.get('nargs', 1)
             inferred_type = self.type
+            if get_origin(inferred_type) in (Union, getattr(types, 'UnionType', Union)):
+                inferred_type = self._infer_union_type(inferred_type)
             if self.attrs.get('multiple', False) or nargs not in (None, 1):
-                origin = get_origin(self.type)
-                args = get_args(self.type)
+                origin = get_origin(inferred_type)
+                args = get_args(inferred_type)
                 if origin is list and len(args) == 1:
                     inferred_type = args[0]
                 elif origin is tuple:
@@ -53,6 +56,26 @@ class _Field(DataclassField):
                     elif isinstance(nargs, int) and nargs > 1 and len(args) == nargs:
                         inferred_type = args
             self.attrs['type'] = inferred_type
+
+    def _infer_union_type(self, annotation):
+        args = get_args(annotation)
+        non_none_args = tuple(arg for arg in args if arg is not type(None))
+        if len(args) != 2 or len(non_none_args) != 1:
+            raise self._union_type_error(annotation)
+
+        inferred_type = non_none_args[0]
+        try:
+            click_type = self.click.types.convert_type(inferred_type)
+        except (AssertionError, TypeError, ValueError):
+            raise self._union_type_error(annotation) from None
+        if isinstance(click_type, self.click.types.FuncParamType):
+            raise self._union_type_error(annotation)
+        return inferred_type
+
+    def _union_type_error(self, annotation):
+        return TypeError(
+            f'{self.name}: cannot infer a Click type from union annotation {annotation!r}; provide type= explicitly'
+        )
 
     def get_type(self):
         return self._click_type

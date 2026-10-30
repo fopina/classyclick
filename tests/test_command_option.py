@@ -1,3 +1,6 @@
+import sys
+from typing import Optional, Union
+
 from click.testing import CliRunner
 
 import classyclick
@@ -29,6 +32,60 @@ class Test(BaseCase):
         result = runner.invoke(Sum.click, ['--a', '1', '--b', '2'])
         self.assertEqual(result.exit_code, 0)
         self.assertEqual(result.output, '3\n')
+
+    def test_optional_option_type_inference(self):
+        class OptionalString(classyclick.Command):
+            value: Optional[str] = classyclick.Option()
+
+            def __call__(self):
+                print(repr(self.value))
+
+        runner = CliRunner()
+        result = runner.invoke(OptionalString.click)
+        self.assertEqual((result.exit_code, result.output), (0, 'None\n'))
+
+        result = runner.invoke(OptionalString.click, ['--value', 'hello'])
+        self.assertEqual((result.exit_code, result.output), (0, "'hello'\n"))
+
+        if sys.version_info >= (3, 10):
+            optional_pep604 = str | None
+            OptionalPep604 = type(
+                'OptionalPep604',
+                (classyclick.Command,),
+                {
+                    '__annotations__': {'value': optional_pep604},
+                    'value': classyclick.Option(),
+                    '__call__': lambda self: print(repr(self.value)),
+                },
+            )
+            result = runner.invoke(OptionalPep604.click, ['--value', 'hello'])
+            self.assertEqual((result.exit_code, result.output), (0, "'hello'\n"))
+
+    def test_unsupported_union_option_requires_explicit_click_type(self):
+        def define_ambiguous_union():
+            class AmbiguousUnion(classyclick.Command):
+                value: Union[int, str] = classyclick.Option()
+
+                def __call__(self): ...
+
+        self.assertRaisesRegex(TypeError, 'provide type= explicitly', define_ambiguous_union)
+
+        def define_unsupported_optional_type():
+            class UnsupportedOptional(classyclick.Command):
+                value: Optional[dict] = classyclick.Option()
+
+                def __call__(self): ...
+
+        self.assertRaisesRegex(TypeError, 'provide type= explicitly', define_unsupported_optional_type)
+
+        class ExplicitType(classyclick.Command):
+            value: Union[int, str] = classyclick.Option(type=str)
+
+            def __call__(self):
+                print(self.value)
+
+        result = CliRunner().invoke(ExplicitType.click, ['--value', 'hello'])
+        self.assertEqual((result.exit_code, result.output), (0, 'hello\n'))
 
     def test_cannot_choose_name(self):
         def _a():
