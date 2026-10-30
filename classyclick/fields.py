@@ -1,6 +1,7 @@
 import sys
 from dataclasses import MISSING
 from dataclasses import Field as DataclassField
+from functools import wraps
 from typing import TYPE_CHECKING, Any, get_args, get_origin
 
 if TYPE_CHECKING:
@@ -210,19 +211,35 @@ class ContextMeta(Context):
     Like :meth:`click.pass_meta_key` (see https://click.palletsprojects.com/en/stable/api/#click.decorators.pass_meta_key),
     this assigns `click.Context.meta[KEY]` to a command property, without handling the whole context.
 
-    This is a REQUIRED value (declare it before optional ones)
+    This is a REQUIRED value (declare it before optional ones), unless a
+    default is provided. The default is used for direct construction and when
+    the key is missing from the Click context metadata.
     """
 
-    # in click, non-existent key throws KeyError, so make this a required dataclass field
+    # Without an explicit fallback, a missing Click meta key raises KeyError and
+    # the corresponding dataclass field is required.
     default = MISSING
 
-    def __init__(self, key: str, **attrs):
+    def __init__(self, key: str, *, default=MISSING, **attrs):
         super().__init__(**attrs)
+        self.default = default
         self._ctx_meta_key = key
 
     def __call__(self, command: 'Command'):
         self.store_field_name(command)
-        return self.click.decorators.pass_meta_key(self._ctx_meta_key, **self.attrs)(command)
+        if self.default is MISSING:
+            return self.click.decorators.pass_meta_key(self._ctx_meta_key, **self.attrs)(command)
+
+        pass_meta_key = self.click.decorators.pass_meta_key(self._ctx_meta_key, **self.attrs)(command)
+
+        @wraps(pass_meta_key)
+        def inject_meta_key(*args, **kwargs):
+            ctx = self.click.get_current_context()
+            if self._ctx_meta_key in ctx.meta:
+                return pass_meta_key(*args, **kwargs)
+            return ctx.invoke(command, self.default, *args, **kwargs)
+
+        return inject_meta_key
 
 
 class _FakeCommand:

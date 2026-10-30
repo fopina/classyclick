@@ -218,7 +218,7 @@ def _field_is_required_for_init(field):
             return False
         return field.attrs.get('required', True)
     if isinstance(field, ContextMeta):
-        return True
+        return not _field_has_python_default(field)
     if _field_has_python_default(field):
         return False
     return field.default is MISSING and field.default_factory is MISSING

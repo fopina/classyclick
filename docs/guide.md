@@ -124,6 +124,10 @@ The three context helpers map directly to Click decorators:
 - `Context()` behaves like `click.pass_context`
 - `ContextObj()` behaves like `click.pass_obj`
 - `ContextMeta('key')` behaves like `click.decorators.pass_meta_key`
+- `ContextMeta('key', default=value)` uses `value` for direct construction and
+  when the key is absent from `click.Context.meta`; a present meta value wins.
+  Without `default=`, direct construction still requires the field, and Click
+  still raises `KeyError` if the metadata key is missing.
 
 These values are pushed into the generated callback and then copied into the
 class instance before `__call__()` runs.

@@ -80,3 +80,47 @@ class Test(BaseCase):
         self.assertEqual(result.output, 'Clone from 1 to 2 at .repo\n')
         self.assertIsNone(result.exception)
         self.assertEqual(result.exit_code, 0)
+
+    def test_context_meta_default(self):
+        if self.click_version < (8, 0):
+            self.skipTest('pass_meta_key requires click 8.0')
+        runner = CliRunner()
+
+        class Standalone(classyclick.Command):
+            value: str = classyclick.ContextMeta('value', default='fallback')
+
+            def __call__(self):
+                click.echo(self.value)
+
+        self.assertEqual(Standalone().value, 'fallback')
+        self.assertEqual(Standalone(value='explicit').value, 'explicit')
+
+        result = runner.invoke(Standalone.click)
+        self.assertIsNone(result.exception)
+        self.assertEqual(result.output, 'fallback\n')
+
+        class CLI(classyclick.Group):
+            ctx: click.Context = classyclick.Context()
+
+            def __call__(self):
+                self.ctx.meta['value'] = 'injected'
+
+        class Nested(CLI.Command):
+            value: str = classyclick.ContextMeta('value', default='fallback')
+
+            def __call__(self):
+                click.echo(self.value)
+
+        result = runner.invoke(CLI.click, ['nested'])
+        self.assertIsNone(result.exception)
+        self.assertEqual(result.output, 'injected\n')
+
+        class Required(classyclick.Command):
+            value: str = classyclick.ContextMeta('missing')
+
+            def __call__(self):
+                click.echo(self.value)
+
+        result = runner.invoke(Required.click)
+        self.assertEqual(result.exit_code, 1)
+        self.assertIsInstance(result.exception, KeyError)
