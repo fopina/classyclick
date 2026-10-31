@@ -321,27 +321,31 @@ The config file is intentionally aligned with the CLI:
 - command-line flags still win over config values
 - `--config` only selects which file to read, so it is not itself stored inside
   `config.toml`
-- `--env` selects an `[env.<name>]` section, while `default_env` provides the
+- `--env` selects an `[_env.<name>]` section, while `_default_env` provides the
   default environment value
 
 Example:
 
 ```toml
-default_env = "dev"
+_default_env = "dev"
 host = "https://api.example.com"
 
-[env.dev]
+[_env.dev]
 token = "dev-token"
 debug = true
 
-[env.prod]
+[_env.prod]
 token = "prod-token"
 ```
 
+The former `default_env` key and `[env.<name>]` tables remain supported but
+emit `DeprecationWarning`s. When both old and new forms define the same value,
+the new `_default_env` or `[_env.<name>]` form wins.
+
 With this file:
 
-- `my-app status` uses the `dev` environment because of `default_env`
-- `my-app --env prod status` merges `[env.prod]` over the root config
+- `my-app status` uses the `dev` environment because of `_default_env`
+- `my-app --env prod status` merges `[_env.prod]` over the root config
 - `my-app --env prod --host https://staging.example.com status` still uses the
   `prod` config, but the CLI flag overrides `host`
 

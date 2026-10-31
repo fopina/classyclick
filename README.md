@@ -348,25 +348,29 @@ classyclick.helpers.discover_commands(__package__)
 
 It can also be called from elsewhere, such as `package.__init__.py`, by pointing it at the commands package directly with `classyclick.helpers.discover_commands(f'{__package__}.commands')`.
 
-`ConfigFileMixin` adds `--config` and `--env`, loads `config.toml`, merges `[env.<name>]` sections, and uses matching keys as defaults for classyclick fields. Explicit command-line flags still win over config values.
+`ConfigFileMixin` adds `--config` and `--env`, loads `config.toml`, merges `[_env.<name>]` sections, and uses matching keys as defaults for classyclick fields. Explicit command-line flags still win over config values.
 
 `ConfigBaseCommand` is a ready-made command that shows the merged config or opens the active config file in `$VISUAL` or `$EDITOR`. Use `--full` to show the complete configuration, or `-l` / `--list` to list only the configured environments.
 
 ### config.toml
 
-`config.toml` is meant to mirror your CLI options. Root-level keys become defaults for matching fields, and `default_env` selects a named `[env.<name>]` section to merge on top.
+`config.toml` is meant to mirror your CLI options. Root-level keys become defaults for matching fields, and `_default_env` selects a named `[_env.<name>]` section to merge on top.
 
 ```toml
-default_env = "dev"
+_default_env = "dev"
 host = "https://api.example.com"
 
-[env.dev]
+[_env.dev]
 token = "dev-token"
 debug = true
 
-[env.prod]
+[_env.prod]
 token = "prod-token"
 ```
+
+The former `default_env` key and `[env.<name>]` tables remain supported for
+compatibility, but emit `DeprecationWarning`s. If both forms define the same
+environment or default, the new `_env` / `_default_env` form takes precedence.
 
 To reuse values for selected commands, define tables under `[_shared]` and
 reference them from command tables with `_shared`:
