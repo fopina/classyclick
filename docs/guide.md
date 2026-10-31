@@ -291,17 +291,22 @@ api_url = 'https://api.example.com'
 [_shared.auth]
 token = 'secret'
 
-[fetch]
+[_shared.service]
 _shared = ['api', 'auth']
+retries = 3
+
+[fetch]
+_shared = ['service']
 output = 'results.json'
 
 [publish]
 _shared = ['api', 'auth']
 ```
 
-Shared sections are direct value bundles; they cannot reference other shared
-sections. `_shared` is reserved config metadata and should not be used as a
-command name or option name.
+Shared sections can reference other shared sections. References merge from
+left to right, with each section's own values overriding its references; a
+cycle is reported as a config error. `_shared` is reserved config metadata
+and should not be used as a command name or option name.
 
 `ConfigBaseCommand` is an optional helper command that prints the merged config
 or opens the file in `$VISUAL` / `$EDITOR`. Pass `--full` to include the complete

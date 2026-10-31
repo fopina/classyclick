@@ -300,11 +300,11 @@ Behavior:
   selected, then removed from the merged `config_data`
 - tables under `[_shared]` can be referenced from command tables using
   `_shared = ['name', ...]`; referenced values merge left to right, then the
-  command's own values override them
+  command's own values override them. Shared tables may reference other shared
+  tables; cycles are reported as config errors.
 - explicit CLI values still take precedence over config values
 
-`_shared` is reserved config metadata. Shared tables are direct value bundles
-and cannot reference other shared tables.
+`_shared` is reserved config metadata.
 
 After loading, the mixin stores extra data on `ctx.meta`:
 

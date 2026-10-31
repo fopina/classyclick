@@ -378,16 +378,21 @@ api_url = 'https://api.example.com'
 [_shared.auth]
 token = 'secret'
 
-[fetch]
+[_shared.service]
 _shared = ['api', 'auth']
+retries = 3
+
+[fetch]
+_shared = ['service']
 output = 'results.json'
 
 [publish]
 _shared = ['api', 'auth']
 ```
 
-Referenced sections merge left to right; command-local values override them.
-Shared sections cannot reference other shared sections. `_shared` is reserved
+Referenced sections merge left to right; each section's own values and then
+command-local values override references. Shared sections can reference other
+shared sections, with cycles reported as config errors. `_shared` is reserved
 config metadata.
 
 With this file:
