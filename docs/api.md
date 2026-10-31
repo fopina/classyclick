@@ -295,9 +295,11 @@ Behavior:
 - if the config file does not exist and `CONFIG_EXAMPLE_PATH` is set, the file
   is created from that example
 - root config values act as defaults for matching `classyclick` fields
-- `default_env` provides the default value for `--env`
-- `[env.<name>]` sections are merged over the root config when an environment is
-  selected, then removed from the merged `config_data`
+- `_default_env` provides the default value for `--env`
+- `[_env.<name>]` sections are merged over the root config when an environment
+  is selected, then removed from the merged `config_data`
+- deprecated `default_env` and `[env.<name>]` settings remain supported and
+  emit `DeprecationWarning`s; the new settings take precedence on conflicts
 - tables under `[_shared]` can be referenced from command tables using
   `_shared = ['name', ...]`; referenced values merge left to right, then the
   command's own values override them. Shared tables may reference other shared
@@ -310,7 +312,7 @@ After loading, the mixin stores extra data on `ctx.meta`:
 
 - `config_path`: resolved path to the loaded config file
 - `config_data`: merged configuration data after environment selection, without
-  the `env` table
+  the `_env` and deprecated `env` tables or environment selector keys
 - `config_file_data`: parsed configuration data before environment merging
 - `selected_env`: chosen environment name, if any
 
