@@ -43,6 +43,71 @@ def merge_dicts(base: dict, override: dict) -> dict:
     return result
 
 
+def _resolve_shared_config(data: dict, command: click.Command, shared_sections: dict) -> dict:
+    """Expand a command's references to named shared config sections."""
+    command_data = dict(data)
+    shared_names = _shared_names(command_data.pop('_shared', None))
+
+    resolved = {}
+    for name in shared_names:
+        resolved = merge_dicts(resolved, _resolve_shared_section(name, shared_sections))
+
+    resolved = merge_dicts(resolved, command_data)
+
+    if isinstance(command, click.Group):
+        for name, child_command in command.commands.items():
+            child_data = resolved.get(name)
+            if isinstance(child_data, dict):
+                resolved[name] = _resolve_shared_config(child_data, child_command, shared_sections)
+
+    return resolved
+
+
+def _shared_names(value) -> list[str]:
+    if value is None:
+        return []
+    if isinstance(value, str):
+        return [value]
+    if isinstance(value, list) and all(isinstance(name, str) for name in value):
+        return value
+    raise click.ClickException('_shared must be a section name or a list of section names')
+
+
+def _resolve_shared_section(name: str, shared_sections: dict, parents=()) -> dict:
+    if name in parents:
+        cycle = ' -> '.join((*parents, name))
+        raise click.ClickException(f'Cycle in shared config sections: {cycle}')
+    if name not in shared_sections:
+        raise click.ClickException(f'Shared config section "{name}" not found')
+
+    section = shared_sections[name]
+    if not isinstance(section, dict):
+        raise click.ClickException(f'Shared config section "{name}" must be a table')
+
+    section = dict(section)
+    references = _shared_names(section.pop('_shared', None))
+    resolved = {}
+    for reference in references:
+        resolved = merge_dicts(resolved, _resolve_shared_section(reference, shared_sections, (*parents, name)))
+    return merge_dicts(resolved, section)
+
+
+def _config_default_map(config_data: dict, command: click.Command) -> dict:
+    """Build Click defaults after resolving command-local shared sections."""
+    default_map = dict(config_data)
+    shared_sections = default_map.pop('_shared', {})
+    if not isinstance(shared_sections, dict):
+        raise click.ClickException('[_shared] must contain named tables')
+
+    if isinstance(command, click.Group):
+        for name, child_command in command.commands.items():
+            child_data = default_map.get(name)
+            if isinstance(child_data, dict):
+                default_map[name] = _resolve_shared_config(child_data, child_command, shared_sections)
+
+    return default_map
+
+
 @dataclass
 class ConfigFileMixin:
     CONFIG_DEFAULT_NAME = None
@@ -124,7 +189,7 @@ class ConfigFileMixin:
         self.ctx.meta['config_data'] = config_data
         self.ctx.meta['config_file_data'] = config_file_data
         self.ctx.meta['selected_env'] = self.env
-        self.ctx.default_map = config_data
+        self.ctx.default_map = _config_default_map(config_data, self.ctx.command)
 
 
 class ConfigBaseCommand(classyclick.Command):

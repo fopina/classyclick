@@ -279,6 +279,35 @@ classyclick.helpers.discover_commands(__package__)
 The mixin adds `--config` and `--env` options and a `ctx` field automatically.
 Call `self.load_config()` before you use config-backed values.
 
+Command option values can be placed in a command table. To reuse values across
+selected commands, define named sections under `[_shared]` and reference them
+with `_shared` in each command table. Multiple sections are merged in listed
+order, and values in the command's own table override them:
+
+```toml
+[_shared.api]
+api_url = 'https://api.example.com'
+
+[_shared.auth]
+token = 'secret'
+
+[_shared.service]
+_shared = ['api', 'auth']
+retries = 3
+
+[fetch]
+_shared = ['service']
+output = 'results.json'
+
+[publish]
+_shared = ['api', 'auth']
+```
+
+Shared sections can reference other shared sections. References merge from
+left to right, with each section's own values overriding its references; a
+cycle is reported as a config error. `_shared` is reserved config metadata
+and should not be used as a command name or option name.
+
 `ConfigBaseCommand` is an optional helper command that prints the merged config
 or opens the file in `$VISUAL` / `$EDITOR`. Pass `--full` to include the complete
 configuration, including every environment section, or `-l` / `--list` to print

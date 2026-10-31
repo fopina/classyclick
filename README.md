@@ -368,6 +368,33 @@ debug = true
 token = "prod-token"
 ```
 
+To reuse values for selected commands, define tables under `[_shared]` and
+reference them from command tables with `_shared`:
+
+```toml
+[_shared.api]
+api_url = 'https://api.example.com'
+
+[_shared.auth]
+token = 'secret'
+
+[_shared.service]
+_shared = ['api', 'auth']
+retries = 3
+
+[fetch]
+_shared = ['service']
+output = 'results.json'
+
+[publish]
+_shared = ['api', 'auth']
+```
+
+Referenced sections merge left to right; each section's own values and then
+command-local values override references. Shared sections can reference other
+shared sections, with cycles reported as config errors. `_shared` is reserved
+config metadata.
+
 With this file:
 
 - `my-app status` uses the `dev` environment by default

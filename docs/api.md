@@ -298,7 +298,13 @@ Behavior:
 - `default_env` provides the default value for `--env`
 - `[env.<name>]` sections are merged over the root config when an environment is
   selected, then removed from the merged `config_data`
+- tables under `[_shared]` can be referenced from command tables using
+  `_shared = ['name', ...]`; referenced values merge left to right, then the
+  command's own values override them. Shared tables may reference other shared
+  tables; cycles are reported as config errors.
 - explicit CLI values still take precedence over config values
+
+`_shared` is reserved config metadata.
 
 After loading, the mixin stores extra data on `ctx.meta`:
 
