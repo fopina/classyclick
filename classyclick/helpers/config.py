@@ -43,6 +43,56 @@ def merge_dicts(base: dict, override: dict) -> dict:
     return result
 
 
+def _resolve_shared_config(data: dict, command: click.Command, shared_sections: dict) -> dict:
+    """Expand a command's references to named shared config sections."""
+    command_data = dict(data)
+    shared_names = command_data.pop('_shared', None)
+
+    if shared_names is None:
+        shared_names = []
+    elif isinstance(shared_names, str):
+        shared_names = [shared_names]
+    elif not isinstance(shared_names, list) or not all(isinstance(name, str) for name in shared_names):
+        raise click.ClickException('_shared must be a section name or a list of section names')
+
+    resolved = {}
+    for name in shared_names:
+        if name not in shared_sections:
+            raise click.ClickException(f'Shared config section "{name}" not found')
+        section = shared_sections[name]
+        if not isinstance(section, dict):
+            raise click.ClickException(f'Shared config section "{name}" must be a table')
+        if '_shared' in section:
+            raise click.ClickException(f'Shared config section "{name}" cannot reference another shared section')
+        resolved = merge_dicts(resolved, section)
+
+    resolved = merge_dicts(resolved, command_data)
+
+    if isinstance(command, click.Group):
+        for name, child_command in command.commands.items():
+            child_data = resolved.get(name)
+            if isinstance(child_data, dict):
+                resolved[name] = _resolve_shared_config(child_data, child_command, shared_sections)
+
+    return resolved
+
+
+def _config_default_map(config_data: dict, command: click.Command) -> dict:
+    """Build Click defaults after resolving command-local shared sections."""
+    default_map = dict(config_data)
+    shared_sections = default_map.pop('_shared', {})
+    if not isinstance(shared_sections, dict):
+        raise click.ClickException('[_shared] must contain named tables')
+
+    if isinstance(command, click.Group):
+        for name, child_command in command.commands.items():
+            child_data = default_map.get(name)
+            if isinstance(child_data, dict):
+                default_map[name] = _resolve_shared_config(child_data, child_command, shared_sections)
+
+    return default_map
+
+
 @dataclass
 class ConfigFileMixin:
     CONFIG_DEFAULT_NAME = None
@@ -124,7 +174,7 @@ class ConfigFileMixin:
         self.ctx.meta['config_data'] = config_data
         self.ctx.meta['config_file_data'] = config_file_data
         self.ctx.meta['selected_env'] = self.env
-        self.ctx.default_map = config_data
+        self.ctx.default_map = _config_default_map(config_data, self.ctx.command)
 
 
 class ConfigBaseCommand(classyclick.Command):
