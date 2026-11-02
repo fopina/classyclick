@@ -147,7 +147,10 @@ class ConfigFileMixin:
         if not config_path.exists() and cls.CONFIG_EXAMPLE_PATH is not None:
             config_path.parent.mkdir(parents=True, exist_ok=True)
             config_path.write_text(Path(cls.CONFIG_EXAMPLE_PATH).read_text())
-            print(f'Info: No configuration file found at {config_path}, a sample config has been placed there.')
+            click.echo(
+                f'Info: No configuration file found at {config_path}, a sample config has been placed there.',
+                err=True,
+            )
 
         return config_path
 

@@ -1,3 +1,5 @@
+from contextlib import redirect_stderr, redirect_stdout
+from io import StringIO
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest.mock import patch
@@ -142,7 +144,13 @@ class TestConfigFileMixin(BaseCase):
                 CONFIG_DEFAULT_PATH = default_path
                 CONFIG_EXAMPLE_PATH = example_path
 
-            self.assertEqual(CustomConfigMixin.ensure_config_file(None), default_path)
+            stdout = StringIO()
+            stderr = StringIO()
+            with redirect_stdout(stdout), redirect_stderr(stderr):
+                self.assertEqual(CustomConfigMixin.ensure_config_file(None), default_path)
+
+            self.assertEqual(stdout.getvalue(), '')
+            self.assertIn('a sample config has been placed there.', stderr.getvalue())
             self.assertEqual(default_path.read_text(), 'name = "demo"\n')
 
     def test_load_config_uses_overridable_class_methods(self):
