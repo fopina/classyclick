@@ -129,6 +129,8 @@ Re-using click examples:
 class Greet(classyclick.Group):
     """Greeting commands."""
 
+    __config__ = classyclick.Group.Config(auto_envvar_prefix='GREET', show_envvar=True)
+
     debug: bool = classyclick.Option('--debug/--no-debug')
 
     def __call__(self):
@@ -149,6 +151,12 @@ class Hello(Greet.Command):
 As with `click.command`, you can choose a command `name` explicitly or let it derive from the class name (camel-case to kebab-case).
 
 The class docstring is forwarded to click using `inspect.getdoc`, so inherited descriptions are used when no explicit help text is configured.
+
+`Group.Config(auto_envvar_prefix='GREET')` enables Click's automatic environment
+variables from the root group (for example, `GREET_HELLO_NAME`). Set
+`show_envvar=True` there to display generated environment-variable names in the
+help for every option in the group and its subgroups. An individual option can
+override that default with `classyclick.Option(show_envvar=False)`.
 
 If you were previously using `@classyclick.command(...)`, the class-based
 equivalent is to subclass `classyclick.Command` and move those keyword
@@ -322,6 +330,8 @@ class CLI(classyclick.helpers.ConfigFileMixin, classyclick.Group):
     """Application CLI."""
 
     __config__ = classyclick.Group.Config(
+        auto_envvar_prefix='MY_APP',
+        show_envvar=True,
         context_settings=dict(show_default=True),
         decorators=[click.version_option(version='1.2.3', message='%(version)s')],
     )

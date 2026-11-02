@@ -176,6 +176,8 @@ from classyclick import Group, Option
 
 
 class CLI(Group):
+    __config__ = Group.Config(auto_envvar_prefix='MYAPP', show_envvar=True)
+
     debug: bool = Option(default=False)
 
     def __call__(self):
@@ -200,6 +202,12 @@ When a `Group` subclass is created, `classyclick`:
 
 This gives you a compact way to build nested CLIs while keeping each command as
 its own class.
+
+`Group.Config(auto_envvar_prefix='MYAPP')` enables Click's automatic environment
+variables from the root group (for example, `MYAPP_HELLO_NAME`). Set
+`show_envvar=True` there to show the generated variable name for every option in
+the group and its subgroups. Individual fields can override that default, such as
+`classyclick.Option(show_envvar=False)`.
 
 ## Helper utilities
 
@@ -255,6 +263,8 @@ class CLI(classyclick.helpers.ConfigFileMixin, classyclick.Group):
     """Application CLI."""
 
     __config__ = classyclick.Group.Config(
+        auto_envvar_prefix='MY_APP',
+        show_envvar=True,
         context_settings=dict(show_default=True),
         decorators=[click.version_option(version='1.2.3', message='%(version)s')],
     )
