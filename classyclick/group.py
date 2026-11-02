@@ -26,6 +26,14 @@ def _build_click_class_command(cls, *, is_group=False):
     doc = utils.get_inherited_doc(cls)
     utils.strictly_typed_dataclass(cls)
 
+    group_config = _get_base_group_config(cls)
+    show_envvar = getattr(group_config, '__classyclick_show_envvar__', None)
+    if is_group:
+        configured_show_envvar = getattr(cls.__config__, 'show_envvar', None) if cls.__config__ else None
+        if configured_show_envvar is not None:
+            show_envvar = configured_show_envvar
+        cls.__classyclick_show_envvar__ = show_envvar
+
     def func(*args, **kwargs):
         if args:
             args = list(args)
@@ -39,7 +47,14 @@ def _build_click_class_command(cls, *, is_group=False):
 
     for field in fields(cls)[::-1]:
         if isinstance(field, _Field):
-            func = field(func)
+            if isinstance(field, Option) and show_envvar is not None and 'show_envvar' not in field.attrs:
+                field.attrs['show_envvar'] = show_envvar
+                try:
+                    func = field(func)
+                finally:
+                    del field.attrs['show_envvar']
+            else:
+                func = field(func)
 
     click_kwargs = {}
     if cls.__config__:
@@ -52,6 +67,7 @@ def _build_click_class_command(cls, *, is_group=False):
                 click_kwargs[key] = value
 
     click_decorators = _normalize_click_decorators(click_kwargs.pop('decorators', None))
+    click_kwargs.pop('show_envvar', None)
 
     click_group = click_kwargs.pop('group', None)
     if click_group is None:
@@ -84,8 +100,30 @@ class Group:
     """
 
     class Config:
-        def __init__(self, *, name: str = None, help: str = None, decorators=None, **kwargs):
-            self.__dict__.update(name=name, help=help, decorators=decorators, **kwargs)
+        def __init__(
+            self,
+            *,
+            name: str = None,
+            help: str = None,
+            decorators=None,
+            auto_envvar_prefix: str = None,
+            show_envvar: bool = None,
+            **kwargs,
+        ):
+            if auto_envvar_prefix is not None:
+                context_settings = dict(kwargs.pop('context_settings', None) or {})
+                context_settings['auto_envvar_prefix'] = auto_envvar_prefix
+                kwargs['context_settings'] = context_settings
+
+            # Click keeps show_envvar per-option (see pallets/click#2313).
+            # Classyclick offers it as a group default for options in this group.
+            self.__dict__.update(
+                name=name,
+                help=help,
+                decorators=decorators,
+                show_envvar=show_envvar,
+                **kwargs,
+            )
 
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)

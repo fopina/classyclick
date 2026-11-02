@@ -196,7 +196,17 @@ Constructor parameters:
 - `name`: override the generated group name
 - `help`: override the group help text
 - `decorators`: apply extra decorators to the generated Click group
+- `auto_envvar_prefix`: set Click's automatic environment-variable prefix on this
+  group. Existing `context_settings` are preserved, with this explicit value
+  taking precedence for `auto_envvar_prefix`.
+- `show_envvar`: default the `show_envvar` option to this value for options on
+  this group and its descendant groups. An explicit `show_envvar=` passed to an
+  individual `classyclick.Option` takes precedence.
 - `**kwargs`: forwarded to `click.group()`
+
+The group-level `show_envvar` convenience is provided by classyclick rather than
+Click. Click's maintainers declined adding it as a general context setting; see
+[pallets/click#2313](https://github.com/pallets/click/issues/2313).
 
 ### `Group.__init_subclass__(**kwargs)`
 
