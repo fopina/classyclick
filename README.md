@@ -129,8 +129,6 @@ Re-using click examples:
 class Greet(classyclick.Group):
     """Greeting commands."""
 
-    __config__ = classyclick.Group.Config(auto_envvar_prefix='GREET', show_envvar=True)
-
     debug: bool = classyclick.Option('--debug/--no-debug')
 
     def __call__(self):
@@ -157,6 +155,15 @@ variables from the root group (for example, `GREET_HELLO_NAME`). Set
 `show_envvar=True` there to display generated environment-variable names in the
 help for every option in the group and its subgroups. An individual option can
 override that default with `classyclick.Option(show_envvar=False)`.
+
+```python
+class CLI(classyclick.Group):
+    __config__ = classyclick.Group.Config(
+        auto_envvar_prefix='MYAPP',
+        show_envvar=True,
+        context_settings=dict(show_default=True),
+    )
+```
 
 If you were previously using `@classyclick.command(...)`, the class-based
 equivalent is to subclass `classyclick.Command` and move those keyword
