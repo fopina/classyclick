@@ -5,6 +5,7 @@ import os
 import shlex
 import shutil
 import subprocess
+import warnings
 from dataclasses import MISSING, dataclass, fields
 from pathlib import Path
 from typing import Optional
@@ -160,21 +161,52 @@ class ConfigFileMixin:
         config_file_data = type(self).load_config_data(self.config)
         config_data = dict(config_file_data)
 
-        if self.env is None:
-            self.env = config_file_data.get('default_env')
+        default_env = config_file_data.get('_default_env')
+        legacy_default_env = config_file_data.get('default_env')
+        if legacy_default_env is not None:
+            warnings.warn(
+                'The "default_env" config key is deprecated; use "_default_env" instead.',
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            if default_env is None:
+                default_env = legacy_default_env
 
-        # allow empty string to choose root environment when "default_env" is set to something else
+        env_sections = config_file_data.get('_env', {})
+        legacy_env_sections = config_file_data.get('env', {})
+        if not isinstance(env_sections, dict):
+            raise click.ClickException('[_env] must contain named tables')
+        if not isinstance(legacy_env_sections, dict):
+            raise click.ClickException('[env] must contain named tables')
+        for name, section in {**legacy_env_sections, **env_sections}.items():
+            if not isinstance(section, dict):
+                raise click.ClickException(f'Environment "{name}" must be a table')
+        if legacy_env_sections:
+            warnings.warn(
+                'The [env.<name>] config tables are deprecated; use [_env.<name>] instead.',
+                DeprecationWarning,
+                stacklevel=2,
+            )
+
+        if self.env is None:
+            self.env = default_env
+
+        # allow empty string to choose root environment when a default environment is configured
         if self.env:
-            if self.env not in config_file_data.get('env', {}):
+            if self.env not in env_sections and self.env not in legacy_env_sections:
                 raise click.ClickException(f'Environment "{self.env}" not found in {self.config}')
-            env_config = config_file_data['env'][self.env]
+            env_config = legacy_env_sections.get(self.env, {})
+            env_config = merge_dicts(env_config, env_sections.get(self.env, {}))
             config_data = merge_dicts(config_data, env_config)
         config_data.pop('env', None)
+        config_data.pop('_env', None)
+        config_data.pop('default_env', None)
+        config_data.pop('_default_env', None)
 
         ignored_fields = {field.name for field in fields(ConfigFileMixin)}
         for field in fields(self):
             if field.name in ignored_fields:
-                # these are not sourced from config - and env is matched with default_env above
+                # these are not sourced from config; env uses the default selector above
                 continue
 
             if not isinstance(field, _Field) or field.name not in config_data:
@@ -245,7 +277,9 @@ class ConfigBaseCommand(classyclick.Command):
             return
 
         if self.list:
-            for env_name in sorted(self.ctx.meta['config_file_data'].get('env', {})):
+            config_file_data = self.ctx.meta['config_file_data']
+            env_names = set(config_file_data.get('_env', {})) | set(config_file_data.get('env', {}))
+            for env_name in sorted(env_names):
                 click.echo(env_name)
             return
 
